@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { noteToMidi } from '../state/notes';
 import type { Instrument, SynthSpec } from '../types/project';
 
 /**
@@ -126,14 +127,6 @@ class NullVoice implements Voice {
   dispose(): void {}
 }
 
-function toMidi(note: string): number | null {
-  try {
-    return Tone.Frequency(note).toMidi();
-  } catch {
-    return null;
-  }
-}
-
 /**
  * Picks the sample whose root note is closest to the requested note and returns
  * the playback rate that shifts it into tune. An exact match plays at rate 1.
@@ -142,12 +135,15 @@ function nearestSample(instrument: Instrument, note: string) {
   const exact = instrument.samples.find(sample => sample.note === note);
   if (exact) return { sample: exact, playbackRate: 1 };
 
-  const targetMidi = toMidi(note);
+  // A kit voice id such as `kick` is not a note. `Tone.Frequency` answers NaN
+  // for it rather than throwing, which would propagate into the playback rate,
+  // so the strict parser is what decides whether pitch-shifting applies at all.
+  const targetMidi = noteToMidi(note);
   if (targetMidi === null) return null;
 
   let best: { sample: (typeof instrument.samples)[number]; distance: number; midi: number } | null = null;
   for (const sample of instrument.samples) {
-    const midi = toMidi(sample.note);
+    const midi = noteToMidi(sample.note);
     if (midi === null) continue;
     const distance = Math.abs(midi - targetMidi);
     if (!best || distance < best.distance) best = { sample, distance, midi };
