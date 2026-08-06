@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health */
+        get: operations["health_api_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/instruments": {
         parameters: {
             query?: never;
@@ -11,8 +28,25 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Instruments */
-        get: operations["get_instruments_api_instruments_get"];
+        /** List Instruments */
+        get: operations["list_instruments_api_instruments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/instruments/{instrument_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Instrument */
+        get: operations["get_instrument_api_instruments__instrument_id__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -33,7 +67,8 @@ export interface paths {
         put?: never;
         /** Save State */
         post: operations["save_state_api_state_post"];
-        delete?: never;
+        /** Delete State */
+        delete: operations["delete_state_api_state_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -48,27 +83,194 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
-        /** SamplerState */
-        SamplerState: {
+        /** HealthResponse */
+        HealthResponse: {
+            /**
+             * Status
+             * @default ok
+             * @constant
+             * @enum {string}
+             */
+            status: "ok";
+        };
+        /** Instrument */
+        Instrument: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "kit" | "pitched";
+            /** Color */
+            color: string;
+            noteRange: components["schemas"]["NoteRange"] | null;
+            /** Samples */
+            samples: components["schemas"]["Sample"][];
+            /** Defaultnotes */
+            defaultNotes: string[];
+        };
+        /** InstrumentCatalog */
+        InstrumentCatalog: {
+            /** Instruments */
+            instruments: components["schemas"]["Instrument"][];
+        };
+        /**
+         * NoteRange
+         * @description Playable range of a pitched instrument, inclusive.
+         */
+        NoteRange: {
+            /** Low */
+            low: string;
+            /** High */
+            high: string;
+        };
+        /** Project */
+        "Project-Input": {
+            /**
+             * Version
+             * @default 2
+             */
+            version: number;
+            /**
+             * Name
+             * @default Untitled
+             */
+            name: string;
             /**
              * Bpm
              * @default 120
              */
             bpm: number;
             /**
-             * Columns
+             * Steps
              * @default 16
              */
-            columns: number;
-            /** Grid */
-            grid: {
-                [key: string]: boolean[][];
-            };
+            steps: number;
+            /**
+             * Swing
+             * @default 0
+             */
+            swing: number;
+            /**
+             * Mastervolume
+             * @default 0.8
+             */
+            masterVolume: number;
+            /**
+             * Loop
+             * @default true
+             */
+            loop: boolean;
+            /** Tracks */
+            tracks: components["schemas"]["Track"][];
+        };
+        /** Project */
+        "Project-Output": {
+            /**
+             * Version
+             * @default 2
+             */
+            version: number;
+            /**
+             * Name
+             * @default Untitled
+             */
+            name: string;
+            /**
+             * Bpm
+             * @default 120
+             */
+            bpm: number;
+            /**
+             * Steps
+             * @default 16
+             */
+            steps: number;
+            /**
+             * Swing
+             * @default 0
+             */
+            swing: number;
+            /**
+             * Mastervolume
+             * @default 0.8
+             */
+            masterVolume: number;
+            /**
+             * Loop
+             * @default true
+             */
+            loop: boolean;
+            /** Tracks */
+            tracks: components["schemas"]["Track"][];
+        };
+        /**
+         * Sample
+         * @description One loadable audio file.
+         *
+         *     For a kit, ``note`` is the voice id (``kick``). For a pitched
+         *     instrument it is the root note name the sampler transposes from.
+         */
+        Sample: {
+            /** Note */
+            note: string;
+            /** Label */
+            label: string;
+            /** Url */
+            url: string;
+        };
+        /** Track */
+        Track: {
+            /** Id */
+            id: string;
+            /** Instrumentid */
+            instrumentId: string;
+            /** Note */
+            note: string;
+            /** Label */
+            label: string;
+            /** Steps */
+            steps: boolean[];
             /**
              * Volume
              * @default 0.8
              */
             volume: number;
+            /**
+             * Muted
+             * @default false
+             */
+            muted: boolean;
+            /**
+             * Solo
+             * @default false
+             */
+            solo: boolean;
+            effects?: components["schemas"]["TrackEffects"];
+        };
+        /**
+         * TrackEffects
+         * @description Per-channel effect chain, normalised to 0..1 by the client.
+         */
+        TrackEffects: {
+            /**
+             * Tone
+             * @default 1
+             */
+            tone: number;
+            /**
+             * Drive
+             * @default 0
+             */
+            drive: number;
+            /**
+             * Reverb
+             * @default 0
+             */
+            reverb: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -88,7 +290,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_instruments_api_instruments_get: {
+    health_api_health_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -103,7 +305,58 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    list_instruments_api_instruments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstrumentCatalog"];
+                };
+            };
+        };
+    };
+    get_instrument_api_instruments__instrument_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                instrument_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Instrument"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -123,7 +376,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Project-Output"];
                 };
             };
         };
@@ -137,7 +390,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["SamplerState"];
+                "application/json": components["schemas"]["Project-Input"];
             };
         };
         responses: {
@@ -147,7 +400,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Project-Output"];
                 };
             };
             /** @description Validation Error */
@@ -158,6 +411,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    delete_state_api_state_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
