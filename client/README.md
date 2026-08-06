@@ -1,75 +1,37 @@
-# React + TypeScript + Vite
+# Music Sampler — client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + TypeScript on Vite. Audio is scheduled by Tone.js. See the
+[project README](../README.md) for what the app does and how the pieces fit.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run dev        # dev server on http://localhost:5173
+npm run build      # tsc -b && vite build
+npm run lint       # eslint .
+npm run test       # vitest run
+npm run preview    # serve the production build
+npm run gen:api    # regenerate src/api/schema.d.ts from the running server
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`gen:api` needs the FastAPI server up on port 3001; it reads
+`http://localhost:3001/openapi.json`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Configuration
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Variable       | Default                 | Purpose               |
+| -------------- | ----------------------- | --------------------- |
+| `VITE_API_URL` | `http://localhost:3001` | Base URL for the API. |
 
-```
+Copy `.env.example` to `.env` to override it. Without a reachable server the app
+falls back to browser-synthesised instruments and `localStorage`.
+
+## Layout
+
+| Path              | What lives there                                              |
+| ----------------- | ------------------------------------------------------------- |
+| `src/audio/`      | Tone.js engine, voices, catalog loading and the offline fallback |
+| `src/state/`      | The project reducer, factories, validation, note helpers       |
+| `src/hooks/`      | Engine binding, persistence, keyboard shortcuts, tap tempo     |
+| `src/components/` | `Sequencer/`, `Transport/`, `SaveIndicator/`                   |
+| `src/api/`        | Fetch wrappers and the generated OpenAPI schema                |
