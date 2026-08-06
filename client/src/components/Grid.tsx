@@ -4,10 +4,11 @@ import './Grid.css';
 
 interface GridProps {
   pattern: GridState;
+  currentStep: number;
   onToggle: (row: number, col: number) => void;
 }
 
-function Grid({ pattern, onToggle }: GridProps) {
+function Grid({ pattern, currentStep, onToggle }: GridProps) {
   return (
     <div className="grid">
       {pattern.map((row, rowIndex) => (
@@ -18,6 +19,7 @@ function Grid({ pattern, onToggle }: GridProps) {
               row={rowIndex}
               col={colIndex}
               active={cell}
+              playing={colIndex === currentStep}
               onToggle={() => onToggle(rowIndex, colIndex)}
             />
           ))}

@@ -7,6 +7,19 @@
   padding: 48px 16px;
 }
 
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bpm-readout {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  color: #9a9ab0;
+  min-width: 68px;
+}
+
 .app h1 {
   font-size: 1.75rem;
   font-weight: 600;

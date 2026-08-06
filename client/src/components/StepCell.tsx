@@ -4,15 +4,16 @@ interface StepCellProps {
   row: number;
   col: number;
   active: boolean;
+  playing: boolean;
   onToggle: () => void;
 }
 
-function StepCell({ row, col, active, onToggle }: StepCellProps) {
+function StepCell({ row, col, active, playing, onToggle }: StepCellProps) {
 
   return (
     <button
       type="button"
-      className={`step-cell ${active ? 'active' : ''}`}
+      className={`step-cell ${active ? 'active' : ''} ${playing ? 'playing' : ''}`}
       aria-pressed={active}
       aria-label={`Track ${row + 1}, step ${col + 1}`}
       onClick={onToggle}
