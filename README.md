@@ -51,10 +51,13 @@ instead, so the app is never a blank screen. The header says which mode it is in
   synthesised into root samples and pitch-shifted across their range.
 - Per row: level, mute, solo, reorder, remove, and click the colour dot to
   audition the sound.
+- Per row effects — a lowpass filter, drive, and a send into a shared reverb.
 
-**Persistence**
-- The project autosaves to the server on a debounce, mirrored to `localStorage`
-  on every edit. It reloads on boot, validated field by field first.
+**Projects**
+- Name the project, or start over from a fresh pattern.
+- Autosaves to the server on a debounce, mirrored to `localStorage` on every
+  edit, and reloads on boot — validated field by field before the app sees it.
+  With no server reachable the mirror alone keeps the work.
 
 ## How it is put together
 
@@ -90,6 +93,9 @@ choked by the next step.
 **The catalog is data, not code.** Adding an instrument on the server — a kit
 voice or a pitched instrument with root samples — needs no client change. The
 client derives note lists, colours and defaults from what the server declares.
+`src/api/contract.ts` asserts at compile time that the domain model still
+matches the generated OpenAPI schema, so a change to a pydantic model breaks the
+build rather than the demo.
 
 ## Checks
 
