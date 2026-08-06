@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useReducer } from 'react';
-import type { Instrument, Project } from '../types/project';
+import type { EffectName, Instrument, Project } from '../types/project';
 import { projectReducer, type ProjectAction } from '../state/projectReducer';
 
 export interface ProjectActions {
@@ -16,6 +16,8 @@ export interface ProjectActions {
   removeTrack(trackId: string): void;
   setTrackNote(trackId: string, note: string, instrument: Instrument): void;
   setTrackVolume(trackId: string, volume: number): void;
+  setTrackEffect(trackId: string, effect: EffectName, value: number): void;
+  resetTrackEffects(trackId: string): void;
   toggleMute(trackId: string): void;
   toggleSolo(trackId: string): void;
   moveTrack(trackId: string, offset: -1 | 1): void;
@@ -43,6 +45,8 @@ export function useProject(initial: Project): [Project, ProjectActions] {
       removeTrack: trackId => send({ type: 'removeTrack', trackId }),
       setTrackNote: (trackId, note, instrument) => send({ type: 'setTrackNote', trackId, note, instrument }),
       setTrackVolume: (trackId, volume) => send({ type: 'setTrackVolume', trackId, volume }),
+      setTrackEffect: (trackId, effect, value) => send({ type: 'setTrackEffect', trackId, effect, value }),
+      resetTrackEffects: trackId => send({ type: 'resetTrackEffects', trackId }),
       toggleMute: trackId => send({ type: 'toggleMute', trackId }),
       toggleSolo: trackId => send({ type: 'toggleSolo', trackId }),
       moveTrack: (trackId, offset) => send({ type: 'moveTrack', trackId, offset }),

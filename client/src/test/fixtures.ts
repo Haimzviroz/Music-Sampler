@@ -1,5 +1,5 @@
 import type { Instrument, Project, Track } from '../types/project';
-import { PROJECT_VERSION } from '../types/project';
+import { DEFAULT_EFFECTS, PROJECT_VERSION } from '../types/project';
 
 /** A kit whose sample list is deliberately longer than `defaultNotes`. */
 export const KIT: Instrument = {
@@ -43,6 +43,7 @@ export function makeTrack(overrides: Partial<Track> = {}): Track {
     volume: 0.8,
     muted: false,
     solo: false,
+    effects: { ...DEFAULT_EFFECTS },
     ...overrides,
   };
 }

@@ -61,6 +61,8 @@ function App() {
         onToggleStep={actions.toggleStep}
         onSetNote={actions.setTrackNote}
         onSetTrackVolume={actions.setTrackVolume}
+        onSetTrackEffect={actions.setTrackEffect}
+        onResetTrackEffects={actions.resetTrackEffects}
         onToggleMute={actions.toggleMute}
         onToggleSolo={actions.toggleSolo}
         onMoveTrack={actions.moveTrack}
