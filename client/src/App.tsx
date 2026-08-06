@@ -53,8 +53,10 @@ function App() {
         currentStep={sampler.currentStep}
         onToggleStep={actions.toggleStep}
         onSetNote={actions.setTrackNote}
+        onSetTrackVolume={actions.setTrackVolume}
         onToggleMute={actions.toggleMute}
         onToggleSolo={actions.toggleSolo}
+        onMoveTrack={actions.moveTrack}
         onRemoveTrack={actions.removeTrack}
         onAudition={sampler.audition}
         onSetSteps={actions.setSteps}

@@ -11,8 +11,10 @@ interface SequencerProps {
   currentStep: number;
   onToggleStep(trackId: string, step: number): void;
   onSetNote(trackId: string, note: string, instrument: Instrument): void;
+  onSetTrackVolume(trackId: string, volume: number): void;
   onToggleMute(trackId: string): void;
   onToggleSolo(trackId: string): void;
+  onMoveTrack(trackId: string, offset: -1 | 1): void;
   onRemoveTrack(trackId: string): void;
   onAudition(trackId: string): void;
   onSetSteps(steps: number): void;
@@ -26,8 +28,10 @@ function Sequencer({
   currentStep,
   onToggleStep,
   onSetNote,
+  onSetTrackVolume,
   onToggleMute,
   onToggleSolo,
+  onMoveTrack,
   onRemoveTrack,
   onAudition,
   onSetSteps,
@@ -66,7 +70,7 @@ function Sequencer({
             </div>
           </div>
 
-          {project.tracks.map(track => {
+          {project.tracks.map((track, index) => {
             const instrument = byId.get(track.instrumentId);
             const color = instrument?.color ?? '#7c5cff';
 
@@ -75,11 +79,15 @@ function Sequencer({
                 <TrackHeader
                   track={track}
                   instrument={instrument}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < project.tracks.length - 1}
                   onSetNote={note => {
                     if (instrument) onSetNote(track.id, note, instrument);
                   }}
+                  onSetVolume={volume => onSetTrackVolume(track.id, volume)}
                   onToggleMute={() => onToggleMute(track.id)}
                   onToggleSolo={() => onToggleSolo(track.id)}
+                  onMove={offset => onMoveTrack(track.id, offset)}
                   onRemove={() => onRemoveTrack(track.id)}
                   onAudition={() => onAudition(track.id)}
                 />
