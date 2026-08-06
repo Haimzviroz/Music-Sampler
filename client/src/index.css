@@ -1,11 +1,196 @@
-*{
+/* ============================================================================
+   Design tokens
+   Everything the components draw with lives here. Component stylesheets should
+   reference these and not raw hex values, so the palette can move in one place.
+   ============================================================================ */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Surfaces -----------------------------------------------------------
+     A five-step ramp on a single hue (248) instead of a dozen near-identical
+     blues: page < panel < inset field < raised < hover. */
+  --surface-page: #0a0911;
+  --surface-panel: #12111d;
+  --surface-inset: #1b192a;
+  --surface-raised: #262339;
+  --surface-hover: #35324e;
+
+  --border: #2d2a41;
+  --border-strong: #454068;
+  --border-hover: #5b5589;
+
+  /* --- Text ---------------------------------------------------------------
+     All four steps clear 4.5:1 against the page and panel surfaces. */
+  --text-primary: #eceaf5;
+  --text-secondary: #c5c2d6;
+  --text-muted: #9f9ab6;
+  --text-faint: #847f9f;
+
+  /* --- Brand and state ----------------------------------------------------
+     The accent doubles as the default track colour in the catalog, so it must
+     keep working both as a fill and as a foreground. */
+  --accent: #7c5cff;
+  --accent-soft: #9b82ff;
+  --accent-wash: rgba(124, 92, 255, 0.16);
+  --danger: #e05a6b;
+  --danger-soft: #ef7183;
+  --danger-wash: rgba(224, 90, 107, 0.14);
+  --warn: #ffb648;
+  --ok: #41d6a0;
+  --ok-wash: rgba(65, 214, 160, 0.14);
+  /* Foreground for anything sitting on a saturated fill. */
+  --on-accent: #0a0911;
+
+  /* --- Grid ---------------------------------------------------------------
+     Active step cells get their background inline from the track colour, so
+     nothing here may set a background on `.step-cell.is-active`. */
+  --grid-step: #1b192a;
+  --grid-step-beat: #302d49;
+  --grid-step-hover: #413c62;
+  --grid-lane: #38315c;
+  --grid-beat-line: #4b4574;
+  --playhead: #d7d7ff;
+  /* Backs the playhead ring so it stays readable on a bright track colour. */
+  --playhead-keyline: rgba(7, 6, 13, 0.6);
+
+  /* Edges drawn over an unknown (inline, catalog-supplied) colour. */
+  --keyline: rgba(7, 6, 13, 0.5);
+  --bevel-light: rgba(255, 255, 255, 0.3);
+  --bevel-dark: rgba(7, 6, 13, 0.22);
+
+  /* --- Focus --------------------------------------------------------------- */
+  --focus-ring: #f2f2ff;
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* --- Typography ---------------------------------------------------------- */
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-numeric: ui-monospace, SFMono-Regular, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Consolas, monospace;
+
+  --text-2xs: 0.6875rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-lg: 0.9375rem;
+  --text-xl: 1.125rem;
+  --text-2xl: clamp(1.5rem, 1.15rem + 1.6vw, 2rem);
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --tracking-label: 0.08em;
+  --tracking-title: -0.015em;
+
+  --weight-normal: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* --- Spacing (4px base) --------------------------------------------------- */
+  --space-05: 0.125rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  /* --- Radii --------------------------------------------------------------- */
+  --radius-1: 4px;
+  --radius-2: 6px;
+  --radius-3: 8px;
+  --radius-4: 12px;
+  --radius-5: 16px;
+  --radius-round: 999px;
+
+  /* --- Elevation -----------------------------------------------------------
+     One shadow, for overlays only. Small controls stay flat. */
+  --shadow-overlay: 0 18px 40px -16px rgba(0, 0, 0, 0.8), 0 2px 10px -6px rgba(0, 0, 0, 0.7);
+
+  /* --- Motion --------------------------------------------------------------- */
+  --dur-1: 90ms;
+  --dur-2: 140ms;
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+  /* --- Control sizing ------------------------------------------------------
+     --control-sm is the touch floor: 32px in the short dimension. */
+  --control-xs: 24px;
+  --control-sm: 32px;
+  --control-md: 36px;
+  --control-lg: 44px;
+
+  /* --- Layout --------------------------------------------------------------- */
+  --layout-max: 1120px;
+  --track-header-w: 204px;
+  --step-height: 34px;
+  --step-min-width: 18px;
+  --step-gap: 5px;
+
+  accent-color: var(--accent);
+}
+
+/* ============================================================================
+   Reset and base
+   ============================================================================ */
+
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: system-ui, sans-serif;
-  background: #12121a;
-  color: #e8e8f0;
+  min-height: 100dvh;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  background: var(--surface-page);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  line-height: var(--leading-tight);
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--accent-wash);
+  color: var(--text-primary);
+}
+
+/* One focus treatment for the whole app. Zero specificity so a component can
+   still opt out (the tempo field moves the ring onto its wrapper). */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* Nothing in the app animates on its own; the playhead is motion enough. This
+   covers every transition the components declare. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
