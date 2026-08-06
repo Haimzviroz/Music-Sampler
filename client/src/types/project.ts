@@ -99,6 +99,9 @@ export interface Project {
 
 export const PROJECT_VERSION = 2;
 
+/** Used when a track points at an instrument the catalog no longer describes. */
+export const DEFAULT_TRACK_COLOR = '#7c5cff';
+
 export const LIMITS = {
   bpm: { min: 40, max: 240 },
   steps: { min: 4, max: 64 },

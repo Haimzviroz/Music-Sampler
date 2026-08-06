@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import type { EffectName, Instrument, Project } from '../../types/project';
-import { DEFAULT_EFFECTS } from '../../types/project';
+import { DEFAULT_EFFECTS, DEFAULT_TRACK_COLOR } from '../../types/project';
 import PatternBar from './PatternBar';
 import StepCell from './StepCell';
 import TrackEffects from './TrackEffects';
@@ -85,7 +85,7 @@ function Sequencer({
 
           {project.tracks.map((track, index) => {
             const instrument = byId.get(track.instrumentId);
-            const color = instrument?.color ?? '#7c5cff';
+            const color = instrument?.color ?? DEFAULT_TRACK_COLOR;
             const effects = { ...DEFAULT_EFFECTS, ...track.effects };
             const fxOpen = openEffects.includes(track.id);
             const fxActive =

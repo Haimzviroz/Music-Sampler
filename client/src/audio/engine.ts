@@ -1,6 +1,6 @@
 import * as Tone from 'tone';
 import type { Instrument, Project, Track, TrackEffects } from '../types/project';
-import { DEFAULT_EFFECTS } from '../types/project';
+import { DEFAULT_EFFECTS, DEFAULT_TRACK_COLOR } from '../types/project';
 import { createVoice, type Voice } from './voices';
 
 /** One step of the grid is a sixteenth note. */
@@ -314,7 +314,7 @@ const EMPTY_INSTRUMENT: Instrument = {
   id: '',
   name: '',
   kind: 'kit',
-  color: '#7c5cff',
+  color: DEFAULT_TRACK_COLOR,
   noteRange: null,
   samples: [],
   defaultNotes: [],
