@@ -1,16 +1,61 @@
 {
-    "drums": {
-        "name": "Drums",
-        "type": "players",
-        "notes": {
-            "kick": "/audio/drums/kick.wav",
-            "clap": "/audio/drums/clap.wav",
-            "hihat": "/audio/drums/hihat.wav",
-            "openhat": "/audio/drums/openhat.wav",
-            "perc_hi": "/audio/drums/perc_hi.wav",
-            "perc_lo": "/audio/drums/perc_lo.wav",
-            "gritty": "/audio/drums/gritty.wav",
-            "cymbal": "/audio/drums/cymbal.wav"
-        }
+  "instruments": [
+    {
+      "id": "drums",
+      "name": "Drums",
+      "kind": "kit",
+      "color": "#7c5cff",
+      "noteRange": null,
+      "samples": [
+        { "note": "kick", "label": "Kick", "url": "/audio/drums/kick.wav" },
+        { "note": "clap", "label": "Clap", "url": "/audio/drums/clap.wav" },
+        { "note": "hihat", "label": "Hi-Hat", "url": "/audio/drums/hihat.wav" },
+        { "note": "openhat", "label": "Open Hat", "url": "/audio/drums/openhat.wav" },
+        { "note": "cymbal", "label": "Cymbal", "url": "/audio/drums/cymbal.wav" },
+        { "note": "perc_hi", "label": "Perc Hi", "url": "/audio/drums/perc_hi.wav" },
+        { "note": "perc_lo", "label": "Perc Lo", "url": "/audio/drums/perc_lo.wav" },
+        { "note": "gritty", "label": "Gritty", "url": "/audio/drums/gritty.wav" }
+      ],
+      "defaultNotes": ["kick", "clap", "hihat", "openhat"]
+    },
+    {
+      "id": "bass",
+      "name": "Bass",
+      "kind": "pitched",
+      "color": "#41d6a0",
+      "noteRange": { "low": "C1", "high": "C4" },
+      "samples": [
+        { "note": "C1", "label": "C1", "url": "/audio/bass/C1.wav" },
+        { "note": "C2", "label": "C2", "url": "/audio/bass/C2.wav" },
+        { "note": "C3", "label": "C3", "url": "/audio/bass/C3.wav" }
+      ],
+      "defaultNotes": ["C2", "D#2", "F2", "G2"]
+    },
+    {
+      "id": "keys",
+      "name": "Keys",
+      "kind": "pitched",
+      "color": "#ffb454",
+      "noteRange": { "low": "C2", "high": "C5" },
+      "samples": [
+        { "note": "C2", "label": "C2", "url": "/audio/keys/C2.wav" },
+        { "note": "C3", "label": "C3", "url": "/audio/keys/C3.wav" },
+        { "note": "C4", "label": "C4", "url": "/audio/keys/C4.wav" }
+      ],
+      "defaultNotes": ["C3", "D#3", "G3", "A#3"]
+    },
+    {
+      "id": "pluck",
+      "name": "Pluck",
+      "kind": "pitched",
+      "color": "#ff6b8b",
+      "noteRange": { "low": "C3", "high": "C6" },
+      "samples": [
+        { "note": "C3", "label": "C3", "url": "/audio/pluck/C3.wav" },
+        { "note": "C4", "label": "C4", "url": "/audio/pluck/C4.wav" },
+        { "note": "C5", "label": "C5", "url": "/audio/pluck/C5.wav" }
+      ],
+      "defaultNotes": ["C4", "D#4", "G4", "A#4"]
     }
+  ]
 }
