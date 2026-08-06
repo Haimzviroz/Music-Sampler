@@ -6,6 +6,7 @@ export type ProjectAction =
   | { type: 'replace'; project: Project }
   | { type: 'rename'; name: string }
   | { type: 'toggleStep'; trackId: string; step: number }
+  | { type: 'setStep'; trackId: string; step: number; value: boolean }
   | { type: 'setBpm'; bpm: number }
   | { type: 'setSteps'; steps: number }
   | { type: 'setSwing'; swing: number }
@@ -49,6 +50,21 @@ export function projectReducer(project: Project, action: ProjectAction): Project
         steps[action.step] = !steps[action.step];
         return { ...track, steps };
       });
+
+    /**
+     * Used while dragging across the grid. Returns the same project when the
+     * step already holds the requested value, so sweeping back over cells that
+     * are already painted costs nothing.
+     */
+    case 'setStep': {
+      const track = project.tracks.find(candidate => candidate.id === action.trackId);
+      if (!track || track.steps[action.step] === action.value) return project;
+      return updateTrack(project, action.trackId, current => {
+        const steps = [...current.steps];
+        steps[action.step] = action.value;
+        return { ...current, steps };
+      });
+    }
 
     case 'setBpm':
       return { ...project, bpm: clamp(Math.round(action.bpm), LIMITS.bpm.min, LIMITS.bpm.max) };

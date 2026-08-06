@@ -66,6 +66,9 @@
   display: grid;
   grid-template-columns: repeat(var(--steps, 16), minmax(var(--step-min-width), 1fr));
   gap: var(--step-gap);
+  /* Dragging across cells to paint a run must not select anything. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* --- Ruler ----------------------------------------------------------------- */

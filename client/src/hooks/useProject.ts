@@ -6,6 +6,7 @@ export interface ProjectActions {
   replace(project: Project): void;
   rename(name: string): void;
   toggleStep(trackId: string, step: number): void;
+  setStep(trackId: string, step: number, value: boolean): void;
   setBpm(bpm: number): void;
   setSteps(steps: number): void;
   setSwing(swing: number): void;
@@ -35,6 +36,7 @@ export function useProject(initial: Project): [Project, ProjectActions] {
       replace: project => send({ type: 'replace', project }),
       rename: name => send({ type: 'rename', name }),
       toggleStep: (trackId, step) => send({ type: 'toggleStep', trackId, step }),
+      setStep: (trackId, step, value) => send({ type: 'setStep', trackId, step, value }),
       setBpm: bpm => send({ type: 'setBpm', bpm }),
       setSteps: steps => send({ type: 'setSteps', steps }),
       setSwing: swing => send({ type: 'setSwing', swing }),
