@@ -1,3 +1,5 @@
+import type { PointerEvent } from 'react';
+
 interface StepCellProps {
   active: boolean;
   playing: boolean;
@@ -5,10 +7,15 @@ interface StepCellProps {
   accent: boolean;
   color: string;
   label: string;
+  /** Pointer pressed on this cell: begins a drag. */
+  onPaintStart(): void;
+  /** Pointer dragged onto this cell while a drag is in progress. */
+  onPaintEnter(): void;
+  /** Keyboard activation. */
   onToggle(): void;
 }
 
-function StepCell({ active, playing, accent, color, label, onToggle }: StepCellProps) {
+function StepCell({ active, playing, accent, color, label, onPaintStart, onPaintEnter, onToggle }: StepCellProps) {
   const className = ['step-cell', active && 'is-active', playing && 'is-playing', accent && 'is-accent']
     .filter(Boolean)
     .join(' ');
@@ -20,7 +27,14 @@ function StepCell({ active, playing, accent, color, label, onToggle }: StepCellP
       style={active ? { background: color } : undefined}
       aria-pressed={active}
       aria-label={label}
-      onClick={onToggle}
+      onPointerDown={onPaintStart}
+      onPointerEnter={onPaintEnter}
+      // A pointer already toggled the cell on pointerdown; the click that
+      // follows it carries a detail count, and only a keyboard activation
+      // arrives with none.
+      onClick={(event: PointerEvent<HTMLButtonElement>) => {
+        if (event.detail === 0) onToggle();
+      }}
     />
   );
 }

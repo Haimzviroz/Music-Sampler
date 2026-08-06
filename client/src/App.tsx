@@ -66,6 +66,7 @@ function App() {
         instruments={catalog.instruments}
         currentStep={sampler.currentStep}
         onToggleStep={actions.toggleStep}
+        onSetStep={actions.setStep}
         onSetNote={actions.setTrackNote}
         onSetTrackVolume={actions.setTrackVolume}
         onSetTrackEffect={actions.setTrackEffect}

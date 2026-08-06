@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { EffectName, Instrument, Project } from '../../types/project';
 import { DEFAULT_EFFECTS, DEFAULT_TRACK_COLOR } from '../../types/project';
 import PatternBar from './PatternBar';
@@ -12,6 +12,7 @@ interface SequencerProps {
   instruments: Instrument[];
   currentStep: number;
   onToggleStep(trackId: string, step: number): void;
+  onSetStep(trackId: string, step: number, value: boolean): void;
   onSetNote(trackId: string, note: string, instrument: Instrument): void;
   onSetTrackVolume(trackId: string, volume: number): void;
   onSetTrackEffect(trackId: string, effect: EffectName, value: number): void;
@@ -31,6 +32,7 @@ function Sequencer({
   instruments,
   currentStep,
   onToggleStep,
+  onSetStep,
   onSetNote,
   onSetTrackVolume,
   onSetTrackEffect,
@@ -47,6 +49,28 @@ function Sequencer({
   // Which effect panels are open is a view concern — it does not belong in the
   // saved project, and it should not travel to another machine.
   const [openEffects, setOpenEffects] = useState<readonly string[]>([]);
+
+  /**
+   * Value being painted while the pointer is held down, or null when it is not.
+   * Programming a bar means filling a run of steps, and doing that one click at
+   * a time is the single most tedious thing about a grid sequencer.
+   */
+  const paintValue = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    const endPaint = () => {
+      paintValue.current = null;
+    };
+
+    // Listened for on the window: the pointer is very often released outside
+    // the cell — or outside the grid — that started the drag.
+    window.addEventListener('pointerup', endPaint);
+    window.addEventListener('pointercancel', endPaint);
+    return () => {
+      window.removeEventListener('pointerup', endPaint);
+      window.removeEventListener('pointercancel', endPaint);
+    };
+  }, []);
 
   const byId = new Map(instruments.map(instrument => [instrument.id, instrument]));
   const gridStyle = { '--steps': project.steps } as CSSProperties;
@@ -122,6 +146,13 @@ function Sequencer({
                       accent={step % 4 === 0}
                       color={color}
                       label={`${track.label}, step ${step + 1}`}
+                      onPaintStart={() => {
+                        paintValue.current = !active;
+                        onSetStep(track.id, step, !active);
+                      }}
+                      onPaintEnter={() => {
+                        if (paintValue.current !== null) onSetStep(track.id, step, paintValue.current);
+                      }}
                       onToggle={() => onToggleStep(track.id, step)}
                     />
                   ))}
