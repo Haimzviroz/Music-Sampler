@@ -1,5 +1,5 @@
 import type { Instrument, Project, Track } from '../types/project';
-import { PROJECT_VERSION } from '../types/project';
+import { DEFAULT_EFFECTS, PROJECT_VERSION } from '../types/project';
 
 export const DEFAULT_STEPS = 16;
 export const DEFAULT_BPM = 120;
@@ -37,6 +37,7 @@ export function createTrack(instrument: Instrument, note: string, steps: number)
     volume: 0.8,
     muted: false,
     solo: false,
+    effects: { ...DEFAULT_EFFECTS },
   };
 }
 

@@ -10,8 +10,8 @@
  * The function is total: it never throws, whatever it is handed.
  */
 
-import type { Instrument, Project, Track } from '../types/project';
-import { LIMITS, PROJECT_VERSION } from '../types/project';
+import type { Instrument, Project, Track, TrackEffects } from '../types/project';
+import { DEFAULT_EFFECTS, LIMITS, PROJECT_VERSION } from '../types/project';
 import { DEFAULT_BPM, DEFAULT_STEPS, resizeSteps } from './project';
 
 const DEFAULT_VOLUME = 0.8;
@@ -56,6 +56,16 @@ function toSteps(value: unknown, length: number): boolean[] {
   return resizeSteps(raw, length);
 }
 
+/** Missing entirely in projects saved before effects existed, hence the defaults. */
+function toEffects(value: unknown): TrackEffects {
+  if (!isRecord(value)) return { ...DEFAULT_EFFECTS };
+  return {
+    tone: toNumber(value.tone, DEFAULT_EFFECTS.tone, 0, 1),
+    drive: toNumber(value.drive, DEFAULT_EFFECTS.drive, 0, 1),
+    reverb: toNumber(value.reverb, DEFAULT_EFFECTS.reverb, 0, 1),
+  };
+}
+
 function validateTrack(
   value: unknown,
   steps: number,
@@ -85,6 +95,7 @@ function validateTrack(
     volume: toNumber(value.volume, DEFAULT_VOLUME, 0, 1),
     muted: toBoolean(value.muted, false),
     solo: toBoolean(value.solo, false),
+    effects: toEffects(value.effects),
   };
 }
 

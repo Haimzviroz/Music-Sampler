@@ -87,6 +87,14 @@ class InstrumentCatalog(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class TrackEffects(BaseModel):
+    """Per-channel effect chain, normalised to 0..1 by the client."""
+
+    tone: float = Field(default=1.0, ge=0.0, le=1.0)
+    drive: float = Field(default=0.0, ge=0.0, le=1.0)
+    reverb: float = Field(default=0.0, ge=0.0, le=1.0)
+
+
 class Track(BaseModel):
     id: str
     instrumentId: str
@@ -96,6 +104,9 @@ class Track(BaseModel):
     volume: float = Field(default=0.8, ge=0.0, le=1.0)
     muted: bool = False
     solo: bool = False
+    # Defaulted rather than required so a project saved before effects existed
+    # still loads.
+    effects: TrackEffects = Field(default_factory=TrackEffects)
 
 
 class Project(BaseModel):

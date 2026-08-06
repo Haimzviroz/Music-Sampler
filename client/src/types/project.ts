@@ -54,6 +54,19 @@ export interface InstrumentCatalog {
   instruments: Instrument[];
 }
 
+/**
+ * Per-channel effect chain, all normalised to 0..1 so the UI is three identical
+ * sliders and a saved project never carries raw frequencies or decibels.
+ */
+export interface TrackEffects {
+  /** Lowpass cutoff. 1 is fully open, lower values darken the sound. */
+  tone: number;
+  /** Distortion amount. 0 bypasses the waveshaper entirely. */
+  drive: number;
+  /** Send level into the shared reverb. */
+  reverb: number;
+}
+
 export interface Track {
   id: string;
   instrumentId: string;
@@ -64,7 +77,12 @@ export interface Track {
   volume: number;
   muted: boolean;
   solo: boolean;
+  effects: TrackEffects;
 }
+
+export const DEFAULT_EFFECTS: TrackEffects = { tone: 1, drive: 0, reverb: 0 };
+
+export type EffectName = keyof TrackEffects;
 
 export interface Project {
   version: number;

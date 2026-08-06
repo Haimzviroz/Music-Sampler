@@ -7,6 +7,10 @@ interface TrackHeaderProps {
   instrument: Instrument | undefined;
   canMoveUp: boolean;
   canMoveDown: boolean;
+  fxOpen: boolean;
+  /** True when the chain is doing something, so a closed panel still shows it. */
+  fxActive: boolean;
+  onToggleFx(): void;
   onSetNote(note: string): void;
   onSetVolume(volume: number): void;
   onToggleMute(): void;
@@ -21,6 +25,9 @@ function TrackHeader({
   instrument,
   canMoveUp,
   canMoveDown,
+  fxOpen,
+  fxActive,
+  onToggleFx,
   onSetNote,
   onSetVolume,
   onToggleMute,
@@ -118,6 +125,16 @@ function TrackHeader({
             ▼
           </button>
         </div>
+
+        <button
+          type="button"
+          className={`track-fx-toggle${fxOpen ? ' is-on' : ''}${fxActive && !fxOpen ? ' is-active' : ''}`}
+          onClick={onToggleFx}
+          aria-expanded={fxOpen}
+          aria-label={`Effects for ${track.label}`}
+        >
+          FX
+        </button>
 
         <input
           type="range"

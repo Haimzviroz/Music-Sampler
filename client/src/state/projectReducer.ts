@@ -1,5 +1,5 @@
-import type { Instrument, Project } from '../types/project';
-import { LIMITS } from '../types/project';
+import type { EffectName, Instrument, Project } from '../types/project';
+import { DEFAULT_EFFECTS, LIMITS } from '../types/project';
 import { createTrack, emptySteps, labelFor, resizeSteps } from './project';
 
 export type ProjectAction =
@@ -16,6 +16,8 @@ export type ProjectAction =
   | { type: 'removeTrack'; trackId: string }
   | { type: 'setTrackNote'; trackId: string; note: string; instrument: Instrument }
   | { type: 'setTrackVolume'; trackId: string; volume: number }
+  | { type: 'setTrackEffect'; trackId: string; effect: EffectName; value: number }
+  | { type: 'resetTrackEffects'; trackId: string }
   | { type: 'toggleMute'; trackId: string }
   | { type: 'toggleSolo'; trackId: string }
   | { type: 'moveTrack'; trackId: string; offset: -1 | 1 }
@@ -98,6 +100,15 @@ export function projectReducer(project: Project, action: ProjectAction): Project
 
     case 'setTrackVolume':
       return updateTrack(project, action.trackId, track => ({ ...track, volume: clamp(action.volume, 0, 1) }));
+
+    case 'setTrackEffect':
+      return updateTrack(project, action.trackId, track => ({
+        ...track,
+        effects: { ...DEFAULT_EFFECTS, ...track.effects, [action.effect]: clamp(action.value, 0, 1) },
+      }));
+
+    case 'resetTrackEffects':
+      return updateTrack(project, action.trackId, track => ({ ...track, effects: { ...DEFAULT_EFFECTS } }));
 
     case 'toggleMute':
       return updateTrack(project, action.trackId, track => ({ ...track, muted: !track.muted }));
