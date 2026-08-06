@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import Sequencer from './components/Sequencer/Sequencer';
+import TransportBar from './components/Transport/TransportBar';
 import { FALLBACK_INSTRUMENTS } from './audio/fallbackCatalog';
 import { useInstruments } from './hooks/useInstruments';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProject } from './hooks/useProject';
 import { useSampler } from './hooks/useSampler';
 import { createStarterProject } from './state/project';
-import { LIMITS } from './types/project';
 import './App.css';
 
 function App() {
@@ -13,6 +14,12 @@ function App() {
   const initialProject = useMemo(() => createStarterProject(FALLBACK_INSTRUMENTS), []);
   const [project, actions] = useProject(initialProject);
   const sampler = useSampler(project, catalog.instruments);
+
+  useKeyboardShortcuts({
+    togglePlay: sampler.togglePlay,
+    rewind: sampler.rewind,
+    toggleLoop: () => actions.setLoop(!project.loop),
+  });
 
   const status = catalog.loading
     ? 'Loading instruments…'
@@ -29,30 +36,16 @@ function App() {
         </span>
       </header>
 
-      <div className="transport">
-        <button
-          type="button"
-          className="transport-button"
-          onClick={sampler.togglePlay}
-          aria-label={sampler.isPlaying ? 'Stop' : 'Play'}
-        >
-          {sampler.isPlaying ? '■' : '▶'}
-        </button>
-
-        <label className="transport-field">
-          <span className="transport-field-label">Tempo</span>
-          <input
-            type="range"
-            className="slider"
-            min={LIMITS.bpm.min}
-            max={LIMITS.bpm.max}
-            value={project.bpm}
-            onChange={event => actions.setBpm(Number(event.target.value))}
-            aria-label="Tempo in BPM"
-          />
-          <span className="transport-readout">{project.bpm} BPM</span>
-        </label>
-      </div>
+      <TransportBar
+        project={project}
+        isPlaying={sampler.isPlaying}
+        onTogglePlay={sampler.togglePlay}
+        onRewind={sampler.rewind}
+        onSetLoop={actions.setLoop}
+        onSetBpm={actions.setBpm}
+        onSetSwing={actions.setSwing}
+        onSetMasterVolume={actions.setMasterVolume}
+      />
 
       <Sequencer
         project={project}
