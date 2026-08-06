@@ -1,27 +1,32 @@
-import type { components } from './schema';
+import type { InstrumentCatalog, Project } from '../types/project';
 
-export type SamplerState = components['schemas']['SamplerState'];
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
-    
-export async function getInstruments() {
-  const res = await fetch(`${BASE}/api/instruments`);
-  if (!res.ok) throw new Error(`Failed to load instruments: ${res.status}`);
-  return res.json();
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, init);
+  if (!response.ok) {
+    throw new Error(`${init?.method ?? 'GET'} ${path} failed: ${response.status}`);
+  }
+  return (await response.json()) as T;
 }
 
-export async function getState(): Promise<SamplerState | null> {
-  const res = await fetch(`${BASE}/api/state`);
-  if (res.status === 404) return null;          // אין שמירה קודמת - מצב תקין
-  if (!res.ok) throw new Error(`Failed to load state: ${res.status}`);
-  return res.json();
+export function fetchInstruments(signal?: AbortSignal): Promise<InstrumentCatalog> {
+  return request<InstrumentCatalog>('/api/instruments', { signal });
 }
 
-export async function saveState(state: SamplerState) {
-  const res = await fetch(`${BASE}/api/state`, {
+/** Resolves to `null` when nothing has been saved yet, which is a normal state. */
+export async function fetchProject(signal?: AbortSignal): Promise<Project | null> {
+  const response = await fetch(`${API_BASE}/api/state`, { signal });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Failed to load project: ${response.status}`);
+  return (await response.json()) as Project;
+}
+
+export function saveProject(project: Project, signal?: AbortSignal): Promise<Project> {
+  return request<Project>('/api/state', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(state),
+    body: JSON.stringify(project),
+    signal,
   });
-  if (!res.ok) throw new Error(`Failed to save state: ${res.status}`);
 }

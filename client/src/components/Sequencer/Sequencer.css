@@ -1,0 +1,146 @@
+@import './StepCell.css';
+
+.sequencer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #16162a;
+  border: 1px solid #24243a;
+  overflow-x: auto;
+}
+
+.sequencer.is-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #8a8aa8;
+}
+
+.track-row {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 640px;
+}
+
+.track-row.is-muted .track-steps {
+  opacity: 0.4;
+}
+
+.track-steps {
+  display: grid;
+  grid-template-columns: repeat(var(--steps, 16), minmax(18px, 1fr));
+  gap: 5px;
+}
+
+.track-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.track-header.is-ruler {
+  height: 18px;
+}
+
+.track-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.track-name:hover {
+  background: #22223a;
+}
+
+.track-name:focus-visible,
+.track-toggle:focus-visible {
+  outline: 2px solid #e8e8f0;
+  outline-offset: 2px;
+}
+
+.track-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.track-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-toggles {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.track-toggle {
+  width: 22px;
+  height: 22px;
+  border: 1px solid #2f2f4a;
+  border-radius: 5px;
+  background: transparent;
+  color: #8a8aa8;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.track-toggle:hover {
+  border-color: #45456b;
+  color: #d5d5e6;
+}
+
+.track-toggle.is-on {
+  background: #e05a6b;
+  border-color: #e05a6b;
+  color: #14141f;
+}
+
+.track-toggle.is-solo.is-on {
+  background: #ffb648;
+  border-color: #ffb648;
+}
+
+.step-tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  color: #4d4d70;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-tick.is-accent {
+  color: #7a7aa0;
+}
+
+.step-tick.is-playing {
+  color: #e8e8f0;
+}
+
+@media (max-width: 720px) {
+  .track-row {
+    grid-template-columns: 132px minmax(0, 1fr);
+    min-width: 520px;
+  }
+}
