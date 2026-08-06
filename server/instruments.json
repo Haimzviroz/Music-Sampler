@@ -1,0 +1,16 @@
+{
+    "drums": {
+        "name": "Drums",
+        "type": "players",
+        "notes": {
+            "kick": "/audio/drums/kick.wav",
+            "clap": "/audio/drums/clap.wav",
+            "hihat": "/audio/drums/hihat.wav",
+            "openhat": "/audio/drums/openhat.wav",
+            "perc_hi": "/audio/drums/perc_hi.wav",
+            "perc_lo": "/audio/drums/perc_lo.wav",
+            "gritty": "/audio/drums/gritty.wav",
+            "cymbal": "/audio/drums/cymbal.wav"
+        }
+    }
+}
