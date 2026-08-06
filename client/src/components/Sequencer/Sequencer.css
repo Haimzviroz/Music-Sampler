@@ -3,26 +3,34 @@
 .sequencer {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 16px;
   padding: 16px;
   border-radius: 14px;
   background: #16162a;
   border: 1px solid #24243a;
-  overflow-x: auto;
 }
 
-.sequencer.is-empty {
-  padding: 48px 24px;
+.sequencer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.sequencer-empty {
+  padding: 40px 24px;
   text-align: center;
   color: #8a8aa8;
+  font-size: 0.875rem;
 }
 
 .track-row {
   display: grid;
-  grid-template-columns: 168px minmax(0, 1fr);
+  grid-template-columns: 204px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  min-width: 640px;
+  min-width: 680px;
 }
 
 .track-row.is-muted .track-steps {
@@ -31,15 +39,21 @@
 
 .track-steps {
   display: grid;
-  grid-template-columns: repeat(var(--steps, 16), minmax(18px, 1fr));
+  grid-template-columns: repeat(var(--steps, 16), minmax(16px, 1fr));
   gap: 5px;
 }
 
 .track-header {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.track-header-row {
+  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -47,48 +61,119 @@
   height: 18px;
 }
 
-.track-name {
+/* Secondary controls stay out of the way until the row is being worked on. */
+.track-header-row.is-secondary {
+  opacity: 0.35;
+  transition: opacity 120ms ease;
+}
+
+.track-row:hover .track-header-row.is-secondary,
+.track-header:focus-within .track-header-row.is-secondary {
+  opacity: 1;
+}
+
+.track-order {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  padding: 4px 6px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  text-align: left;
-}
-
-.track-name:hover {
-  background: #22223a;
-}
-
-.track-name:focus-visible,
-.track-toggle:focus-visible {
-  outline: 2px solid #e8e8f0;
-  outline-offset: 2px;
-}
-
-.track-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  flex-direction: column;
+  gap: 1px;
   flex: none;
 }
 
-.track-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.track-order-button {
+  width: 18px;
+  height: 11px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #6a6a90;
+  font-size: 0.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.track-order-button:hover:not(:disabled) {
+  color: #e8e8f0;
+  background: #262640;
+}
+
+.track-order-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.track-volume {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  cursor: pointer;
+}
+
+.track-remove {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #6a6a90;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.track-remove:hover {
+  color: #e05a6b;
+  background: #262640;
+}
+
+.track-preview {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.track-preview:hover {
+  background: #22223a;
+}
+
+.track-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.track-note {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  padding: 0 4px;
+  border: 1px solid #2a2a44;
+  border-radius: 6px;
+  background: #1c1c30;
+  color: #e8e8f0;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.track-note:hover {
+  border-color: #45456b;
 }
 
 .track-toggles {
   display: flex;
-  gap: 4px;
+  gap: 3px;
   flex: none;
 }
 
@@ -103,6 +188,7 @@
   font-weight: 600;
   line-height: 1;
   cursor: pointer;
+  padding: 0;
 }
 
 .track-toggle:hover {
@@ -138,9 +224,24 @@
   color: #e8e8f0;
 }
 
+.track-preview:focus-visible,
+.track-note:focus-visible,
+.track-toggle:focus-visible,
+.track-order-button:focus-visible,
+.track-volume:focus-visible,
+.track-remove:focus-visible {
+  outline: 2px solid #e8e8f0;
+  outline-offset: 2px;
+}
+
 @media (max-width: 720px) {
   .track-row {
-    grid-template-columns: 132px minmax(0, 1fr);
-    min-width: 520px;
+    grid-template-columns: 168px minmax(0, 1fr);
+    min-width: 580px;
+  }
+
+  /* Touch devices have no hover, so the secondary row must stay legible. */
+  .track-header-row.is-secondary {
+    opacity: 1;
   }
 }
