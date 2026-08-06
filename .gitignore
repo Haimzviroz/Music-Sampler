@@ -19,3 +19,4 @@ server/data/
 # Claude
 CLAUDE.md
 .claude/
+.worktrees/
