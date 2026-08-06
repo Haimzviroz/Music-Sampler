@@ -1,0 +1,111 @@
+import { useEffect, useRef, useState } from 'react';
+import type { Instrument, Project } from '../../types/project';
+import { LIMITS } from '../../types/project';
+import './PatternBar.css';
+
+const STEP_PRESETS = [8, 16, 32];
+
+interface PatternBarProps {
+  project: Project;
+  instruments: Instrument[];
+  onSetSteps(steps: number): void;
+  onAddInstrument(instrument: Instrument): void;
+  onClearAll(): void;
+}
+
+function PatternBar({ project, instruments, onSetSteps, onAddInstrument, onClearAll }: PatternBarProps) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+
+    function onPointerDown(event: PointerEvent) {
+      if (!pickerRef.current?.contains(event.target as Node)) setPickerOpen(false);
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setPickerOpen(false);
+    }
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [pickerOpen]);
+
+  return (
+    <div className="pattern-bar">
+      <div className="pattern-group">
+        <span className="pattern-label">Steps</span>
+        {STEP_PRESETS.map(preset => (
+          <button
+            key={preset}
+            type="button"
+            className={`pattern-chip${project.steps === preset ? ' is-on' : ''}`}
+            aria-pressed={project.steps === preset}
+            onClick={() => onSetSteps(preset)}
+          >
+            {preset}
+          </button>
+        ))}
+        <input
+          type="number"
+          className="pattern-number"
+          min={LIMITS.steps.min}
+          max={LIMITS.steps.max}
+          value={project.steps}
+          onChange={event => {
+            const value = Number(event.target.value);
+            if (Number.isFinite(value) && value >= LIMITS.steps.min) onSetSteps(value);
+          }}
+          aria-label="Number of steps in the pattern"
+        />
+      </div>
+
+      <div className="pattern-group pattern-group-end">
+        <div className="pattern-picker" ref={pickerRef}>
+          <button
+            type="button"
+            className="pattern-action"
+            onClick={() => setPickerOpen(open => !open)}
+            aria-expanded={pickerOpen}
+            aria-haspopup="menu"
+          >
+            + Add instrument
+          </button>
+
+          {pickerOpen && (
+            <div className="pattern-menu" role="menu">
+              {instruments.map(instrument => (
+                <button
+                  key={instrument.id}
+                  type="button"
+                  className="pattern-menu-item"
+                  role="menuitem"
+                  onClick={() => {
+                    onAddInstrument(instrument);
+                    setPickerOpen(false);
+                  }}
+                >
+                  <span className="pattern-menu-dot" style={{ background: instrument.color }} aria-hidden="true" />
+                  <span>{instrument.name}</span>
+                  <span className="pattern-menu-hint">
+                    {instrument.kind === 'kit' ? `${instrument.samples.length} voices` : 'pitched'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button type="button" className="pattern-action" onClick={onClearAll}>
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default PatternBar;

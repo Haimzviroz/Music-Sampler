@@ -52,9 +52,14 @@ function App() {
         instruments={catalog.instruments}
         currentStep={sampler.currentStep}
         onToggleStep={actions.toggleStep}
+        onSetNote={actions.setTrackNote}
         onToggleMute={actions.toggleMute}
         onToggleSolo={actions.toggleSolo}
+        onRemoveTrack={actions.removeTrack}
         onAudition={sampler.audition}
+        onSetSteps={actions.setSteps}
+        onAddInstrument={actions.addInstrument}
+        onClearAll={actions.clearAll}
       />
     </div>
   );
