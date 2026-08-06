@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
+import SaveIndicator from './components/SaveIndicator/SaveIndicator';
 import Sequencer from './components/Sequencer/Sequencer';
 import TransportBar from './components/Transport/TransportBar';
 import { FALLBACK_INSTRUMENTS } from './audio/fallbackCatalog';
 import { useInstruments } from './hooks/useInstruments';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { useProject } from './hooks/useProject';
+import { useProjectSync } from './hooks/useProjectSync';
 import { useSampler } from './hooks/useSampler';
 import { createStarterProject } from './state/project';
 import './App.css';
@@ -14,11 +16,13 @@ function App() {
   const initialProject = useMemo(() => createStarterProject(FALLBACK_INSTRUMENTS), []);
   const [project, actions] = useProject(initialProject);
   const sampler = useSampler(project, catalog.instruments);
+  const sync = useProjectSync(project, catalog.instruments, actions.replace);
 
   useKeyboardShortcuts({
     togglePlay: sampler.togglePlay,
     rewind: sampler.rewind,
     toggleLoop: () => actions.setLoop(!project.loop),
+    save: sync.saveNow,
   });
 
   const status = catalog.loading
@@ -31,9 +35,12 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Music Sampler</h1>
-        <span className="app-status" title={catalog.reason}>
-          {status}
-        </span>
+        <div className="app-meta">
+          <span className="app-status" title={catalog.reason}>
+            {status}
+          </span>
+          <SaveIndicator status={sync.status} lastSavedAt={sync.lastSavedAt} message={sync.message} />
+        </div>
       </header>
 
       <TransportBar

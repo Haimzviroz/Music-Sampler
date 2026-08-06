@@ -4,6 +4,7 @@ export interface ShortcutHandlers {
   togglePlay(): void;
   rewind(): void;
   toggleLoop(): void;
+  save(): void;
 }
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -26,6 +27,14 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      // Ctrl/Cmd+S saves, everywhere, including from inside a field: the browser
+      // "save page" dialog is never what someone wants here.
+      if ((event.ctrlKey || event.metaKey) && event.code === 'KeyS') {
+        event.preventDefault();
+        ref.current.save();
+        return;
+      }
+
       if (event.ctrlKey || event.metaKey || event.altKey) return;
       if (isTypingTarget(event.target)) return;
 
