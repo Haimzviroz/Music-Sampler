@@ -15,3 +15,7 @@ server/data/
 .vscode/
 .idea/
 .DS_Store
+
+# Claude
+CLAUDE.md
+.claude/
