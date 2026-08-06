@@ -27,10 +27,10 @@
 
 .track-row {
   display: grid;
-  grid-template-columns: 196px minmax(0, 1fr);
+  grid-template-columns: 204px minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  min-width: 660px;
+  min-width: 680px;
 }
 
 .track-row.is-muted .track-steps {
@@ -45,6 +45,13 @@
 
 .track-header {
   display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.track-header-row {
+  display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
@@ -52,6 +59,75 @@
 
 .track-header.is-ruler {
   height: 18px;
+}
+
+/* Secondary controls stay out of the way until the row is being worked on. */
+.track-header-row.is-secondary {
+  opacity: 0.35;
+  transition: opacity 120ms ease;
+}
+
+.track-row:hover .track-header-row.is-secondary,
+.track-header:focus-within .track-header-row.is-secondary {
+  opacity: 1;
+}
+
+.track-order {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: none;
+}
+
+.track-order-button {
+  width: 18px;
+  height: 11px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: #6a6a90;
+  font-size: 0.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.track-order-button:hover:not(:disabled) {
+  color: #e8e8f0;
+  background: #262640;
+}
+
+.track-order-button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.track-volume {
+  flex: 1;
+  min-width: 0;
+  height: 14px;
+  cursor: pointer;
+}
+
+.track-remove {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #6a6a90;
+  font-size: 0.9375rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.track-remove:hover {
+  color: #e05a6b;
+  background: #262640;
 }
 
 .track-preview {
@@ -131,15 +207,6 @@
   border-color: #ffb648;
 }
 
-.track-toggle.is-remove {
-  font-size: 0.9375rem;
-}
-
-.track-toggle.is-remove:hover {
-  border-color: #e05a6b;
-  color: #e05a6b;
-}
-
 .step-tick {
   display: flex;
   align-items: center;
@@ -159,14 +226,22 @@
 
 .track-preview:focus-visible,
 .track-note:focus-visible,
-.track-toggle:focus-visible {
+.track-toggle:focus-visible,
+.track-order-button:focus-visible,
+.track-volume:focus-visible,
+.track-remove:focus-visible {
   outline: 2px solid #e8e8f0;
   outline-offset: 2px;
 }
 
 @media (max-width: 720px) {
   .track-row {
-    grid-template-columns: 158px minmax(0, 1fr);
-    min-width: 560px;
+    grid-template-columns: 168px minmax(0, 1fr);
+    min-width: 580px;
+  }
+
+  /* Touch devices have no hover, so the secondary row must stay legible. */
+  .track-header-row.is-secondary {
+    opacity: 1;
   }
 }

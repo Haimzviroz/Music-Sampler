@@ -5,9 +5,13 @@ import type { Instrument, Track } from '../../types/project';
 interface TrackHeaderProps {
   track: Track;
   instrument: Instrument | undefined;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
   onSetNote(note: string): void;
+  onSetVolume(volume: number): void;
   onToggleMute(): void;
   onToggleSolo(): void;
+  onMove(offset: -1 | 1): void;
   onRemove(): void;
   onAudition(): void;
 }
@@ -15,9 +19,13 @@ interface TrackHeaderProps {
 function TrackHeader({
   track,
   instrument,
+  canMoveUp,
+  canMoveDown,
   onSetNote,
+  onSetVolume,
   onToggleMute,
   onToggleSolo,
+  onMove,
   onRemove,
   onAudition,
 }: TrackHeaderProps) {
@@ -42,53 +50,91 @@ function TrackHeader({
 
   return (
     <div className="track-header">
-      <button
-        type="button"
-        className="track-preview"
-        onClick={onAudition}
-        title={`Preview ${instrument?.name ?? track.instrumentId} ${track.note}`}
-        aria-label={`Preview ${track.label}`}
-      >
-        <span className="track-dot" style={{ background: color }} aria-hidden="true" />
-      </button>
-
-      <select
-        className="track-note"
-        value={track.note}
-        onChange={event => onSetNote(event.target.value)}
-        aria-label={`Sound for ${track.label}`}
-      >
-        {!hasCurrent && <option value={track.note}>{track.label}</option>}
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-
-      <div className="track-toggles">
+      <div className="track-header-row">
         <button
           type="button"
-          className={`track-toggle${track.muted ? ' is-on' : ''}`}
-          aria-pressed={track.muted}
-          aria-label={`Mute ${track.label}`}
-          onClick={onToggleMute}
+          className="track-preview"
+          onClick={onAudition}
+          title={`Preview ${instrument?.name ?? track.instrumentId} ${track.note}`}
+          aria-label={`Preview ${track.label}`}
         >
-          M
+          <span className="track-dot" style={{ background: color }} aria-hidden="true" />
         </button>
-        <button
-          type="button"
-          className={`track-toggle is-solo${track.solo ? ' is-on' : ''}`}
-          aria-pressed={track.solo}
-          aria-label={`Solo ${track.label}`}
-          onClick={onToggleSolo}
+
+        <select
+          className="track-note"
+          value={track.note}
+          onChange={event => onSetNote(event.target.value)}
+          aria-label={`Sound for ${track.label}`}
         >
-          S
-        </button>
+          {!hasCurrent && <option value={track.note}>{track.label}</option>}
+          {options.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="track-toggles">
+          <button
+            type="button"
+            className={`track-toggle${track.muted ? ' is-on' : ''}`}
+            aria-pressed={track.muted}
+            aria-label={`Mute ${track.label}`}
+            onClick={onToggleMute}
+          >
+            M
+          </button>
+          <button
+            type="button"
+            className={`track-toggle is-solo${track.solo ? ' is-on' : ''}`}
+            aria-pressed={track.solo}
+            aria-label={`Solo ${track.label}`}
+            onClick={onToggleSolo}
+          >
+            S
+          </button>
+        </div>
+      </div>
+
+      <div className="track-header-row is-secondary">
+        <div className="track-order">
+          <button
+            type="button"
+            className="track-order-button"
+            onClick={() => onMove(-1)}
+            disabled={!canMoveUp}
+            aria-label={`Move ${track.label} up`}
+          >
+            ▲
+          </button>
+          <button
+            type="button"
+            className="track-order-button"
+            onClick={() => onMove(1)}
+            disabled={!canMoveDown}
+            aria-label={`Move ${track.label} down`}
+          >
+            ▼
+          </button>
+        </div>
+
+        <input
+          type="range"
+          className="track-volume"
+          min={0}
+          max={100}
+          value={Math.round(track.volume * 100)}
+          onChange={event => onSetVolume(Number(event.target.value) / 100)}
+          style={{ accentColor: color }}
+          aria-label={`Level for ${track.label}`}
+        />
+
         <button
           type="button"
-          className="track-toggle is-remove"
+          className="track-remove"
           aria-label={`Remove ${track.label}`}
+          title={`Remove ${track.label}`}
           onClick={onRemove}
         >
           ×
