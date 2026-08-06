@@ -73,7 +73,9 @@ class Instrument(BaseModel):
     name: str
     kind: Literal["kit", "pitched"]
     color: str
-    noteRange: NoteRange | None = None
+    # Required but nullable, not optional: every instrument states its range or
+    # states that it has none, so the generated client type has no undefined case.
+    noteRange: NoteRange | None
     samples: list[Sample] = Field(min_length=1)
     defaultNotes: list[str] = Field(min_length=1)
 
