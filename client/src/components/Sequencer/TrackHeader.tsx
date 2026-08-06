@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { notesInRange } from '../../state/notes';
 import type { Instrument, Track } from '../../types/project';
+import { DEFAULT_TRACK_COLOR } from '../../types/project';
 
 interface TrackHeaderProps {
   track: Track;
@@ -36,7 +37,7 @@ function TrackHeader({
   onRemove,
   onAudition,
 }: TrackHeaderProps) {
-  const color = instrument?.color ?? '#7c5cff';
+  const color = instrument?.color ?? DEFAULT_TRACK_COLOR;
 
   const options = useMemo(() => {
     if (!instrument) return [{ value: track.note, label: track.label }];

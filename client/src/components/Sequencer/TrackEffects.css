@@ -2,61 +2,64 @@
    it opens, so everything to do with effects is in one file. */
 .track-fx-toggle {
   height: 18px;
-  padding: 0 6px;
+  padding: 0 var(--space-2);
   flex: none;
-  border: 1px solid #2f2f4a;
-  border-radius: 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-1);
   background: transparent;
-  color: #8a8aa8;
-  font: inherit;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-label);
   line-height: 1;
   cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
 }
 
 .track-fx-toggle:hover {
-  border-color: #45456b;
-  color: #d5d5e6;
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .track-fx-toggle.is-on {
-  border-color: #41d6a0;
-  color: #41d6a0;
+  border-color: var(--ok);
+  color: var(--ok);
+  background: var(--ok-wash);
 }
 
 /* A track whose chain is doing something says so even when the panel is shut. */
 .track-fx-toggle.is-active::after {
   content: '•';
-  margin-left: 3px;
-  color: #41d6a0;
+  margin-left: var(--space-05);
+  color: var(--ok);
 }
 
 .track-effects {
   grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 8px 18px;
+  gap: var(--space-2) var(--space-5);
   flex-wrap: wrap;
-  padding: 8px 10px;
-  margin: 2px 0 6px;
-  border-radius: 9px;
-  background: #1a1a2e;
-  border: 1px solid #26263f;
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-05) 0 var(--space-2);
+  border-radius: var(--radius-3);
+  background: var(--surface-inset);
+  border: 1px solid var(--border);
 }
 
 .track-effect {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .track-effect-label {
-  font-size: 0.6875rem;
-  color: #8a8aa8;
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--tracking-label);
   min-width: 42px;
 }
 
@@ -66,41 +69,37 @@
 }
 
 .track-effect-value {
-  font-size: 0.6875rem;
-  color: #b9b9d0;
+  font-family: var(--font-numeric);
+  font-size: var(--text-2xs);
   font-variant-numeric: tabular-nums;
-  min-width: 22px;
+  color: var(--text-secondary);
+  min-width: 24px;
   text-align: right;
 }
 
 .track-effect-reset {
   margin-left: auto;
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid #2f2f4a;
-  border-radius: 6px;
+  height: var(--control-xs);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2);
   background: transparent;
-  color: #8a8aa8;
-  font: inherit;
-  font-size: 0.6875rem;
+  color: var(--text-muted);
+  font-size: var(--text-2xs);
   cursor: pointer;
+  transition:
+    border-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
 }
 
 .track-effect-reset:hover:not(:disabled) {
-  border-color: #45456b;
-  color: #e8e8f0;
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .track-effect-reset:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: default;
-}
-
-.track-fx-toggle:focus-visible,
-.track-effect-slider:focus-visible,
-.track-effect-reset:focus-visible {
-  outline: 2px solid #e8e8f0;
-  outline-offset: 2px;
 }
 
 @media (max-width: 720px) {
@@ -110,5 +109,16 @@
 
   .track-effect-reset {
     margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .track-effect {
+    flex: 1 1 100%;
+  }
+
+  .track-effect-slider {
+    flex: 1;
+    width: auto;
   }
 }

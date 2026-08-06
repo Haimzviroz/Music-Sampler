@@ -1,54 +1,56 @@
 .save-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #16162a;
-  border: 1px solid #24243a;
-  color: #8a8aa8;
-  font-size: 0.75rem;
-  line-height: 1.2;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-round);
+  background: var(--surface-panel);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-tight);
   white-space: nowrap;
 }
 
 .save-indicator-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   flex: none;
-  background: #4d4d70;
-  transition: background 160ms ease;
+  background: var(--text-faint);
+  transition: background-color var(--dur-2) var(--ease-out);
 }
 
 .save-indicator.is-saved {
-  color: #b9b9d0;
+  color: var(--text-secondary);
 }
 
 .save-indicator.is-saved .save-indicator-dot {
-  background: #4bd08b;
+  background: var(--ok);
 }
 
+/* The only animation in the app, and only while a request is actually in
+   flight — a status that never settles would compete with the playhead. */
 .save-indicator.is-saving .save-indicator-dot,
 .save-indicator.is-loading .save-indicator-dot {
-  background: #7c5cff;
+  background: var(--accent);
   animation: save-indicator-pulse 1s ease-in-out infinite;
 }
 
 .save-indicator.is-offline {
-  color: #ffb648;
+  color: var(--warn);
 }
 
 .save-indicator.is-offline .save-indicator-dot {
-  background: #ffb648;
+  background: var(--warn);
 }
 
 .save-indicator.is-error {
-  color: #e05a6b;
+  color: var(--danger-soft);
 }
 
 .save-indicator.is-error .save-indicator-dot {
-  background: #e05a6b;
+  background: var(--danger);
 }
 
 @keyframes save-indicator-pulse {
@@ -60,6 +62,5 @@
 @media (prefers-reduced-motion: reduce) {
   .save-indicator-dot {
     animation: none;
-    transition: none;
   }
 }
