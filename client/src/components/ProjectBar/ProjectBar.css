@@ -1,0 +1,81 @@
+.project-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.project-name-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.project-name-label {
+  font-size: 0.75rem;
+  color: #8a8aa8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.project-name-input {
+  width: min(280px, 52vw);
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #2a2a44;
+  border-radius: 8px;
+  background: #16162a;
+  color: #e8e8f0;
+  font: inherit;
+  font-size: 0.9375rem;
+}
+
+.project-name-input::placeholder {
+  color: #6a6a90;
+}
+
+.project-name-input:hover {
+  border-color: #45456b;
+}
+
+.project-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.project-confirm-text {
+  font-size: 0.8125rem;
+  color: #b9b9d0;
+}
+
+.project-action {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid #2f2f4a;
+  border-radius: 8px;
+  background: transparent;
+  color: #b9b9d0;
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.project-action:hover {
+  border-color: #45456b;
+  color: #e8e8f0;
+}
+
+.project-action.is-danger:hover {
+  border-color: #e05a6b;
+  color: #e05a6b;
+}
+
+.project-name-input:focus-visible,
+.project-action:focus-visible {
+  outline: 2px solid #e8e8f0;
+  outline-offset: 2px;
+}

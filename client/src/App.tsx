@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import ProjectBar from './components/ProjectBar/ProjectBar';
 import SaveIndicator from './components/SaveIndicator/SaveIndicator';
 import Sequencer from './components/Sequencer/Sequencer';
 import TransportBar from './components/Transport/TransportBar';
@@ -42,6 +43,12 @@ function App() {
           <SaveIndicator status={sync.status} lastSavedAt={sync.lastSavedAt} message={sync.message} />
         </div>
       </header>
+
+      <ProjectBar
+        name={project.name}
+        onRename={actions.rename}
+        onNewProject={() => actions.replace(createStarterProject(catalog.instruments))}
+      />
 
       <TransportBar
         project={project}
