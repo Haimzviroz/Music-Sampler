@@ -128,12 +128,18 @@ class NullVoice implements Voice {
 }
 
 /**
- * Picks the sample whose root note is closest to the requested note and returns
- * the playback rate that shifts it into tune. An exact match plays at rate 1.
+ * The samples an instrument actually has in memory, keyed by note. Loading is
+ * per sample, so a kit missing one file still has the rest.
  */
-function nearestSample(instrument: Instrument, note: string) {
-  const exact = instrument.samples.find(sample => sample.note === note);
-  if (exact) return { sample: exact, playbackRate: 1 };
+export type SampleBuffers = Map<string, Tone.ToneAudioBuffer>;
+
+/**
+ * Picks the loaded sample whose root note is closest to the requested note and
+ * returns the playback rate that shifts it into tune. An exact match plays at
+ * rate 1.
+ */
+function nearestSample(instrument: Instrument, note: string, buffers: SampleBuffers) {
+  if (buffers.has(note)) return { note, playbackRate: 1 };
 
   // A kit voice id such as `kick` is not a note. `Tone.Frequency` answers NaN
   // for it rather than throwing, which would propagate into the playback rate,
@@ -141,16 +147,17 @@ function nearestSample(instrument: Instrument, note: string) {
   const targetMidi = noteToMidi(note);
   if (targetMidi === null) return null;
 
-  let best: { sample: (typeof instrument.samples)[number]; distance: number; midi: number } | null = null;
+  let best: { note: string; distance: number; midi: number } | null = null;
   for (const sample of instrument.samples) {
+    if (!buffers.has(sample.note)) continue;
     const midi = noteToMidi(sample.note);
     if (midi === null) continue;
     const distance = Math.abs(midi - targetMidi);
-    if (!best || distance < best.distance) best = { sample, distance, midi };
+    if (!best || distance < best.distance) best = { note: sample.note, distance, midi };
   }
 
   if (!best) return null;
-  return { sample: best.sample, playbackRate: Math.pow(2, (targetMidi - best.midi) / 12) };
+  return { note: best.note, playbackRate: Math.pow(2, (targetMidi - best.midi) / 12) };
 }
 
 /**
@@ -161,12 +168,12 @@ export function createVoice(
   instrument: Instrument,
   note: string,
   destination: Tone.InputNode,
-  buffers: Tone.ToneAudioBuffers | undefined,
+  buffers: SampleBuffers | undefined,
 ): Voice {
-  const match = buffers ? nearestSample(instrument, note) : null;
-  if (match && buffers?.has(match.sample.note)) {
-    const audioBuffer = buffers.get(match.sample.note).get();
-    if (audioBuffer) {
+  if (buffers && buffers.size > 0) {
+    const match = nearestSample(instrument, note, buffers);
+    const audioBuffer = match ? buffers.get(match.note)?.get() : undefined;
+    if (match && audioBuffer) {
       return new SampleVoice(audioBuffer, match.playbackRate, destination);
     }
   }

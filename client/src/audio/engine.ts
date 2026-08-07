@@ -1,7 +1,7 @@
 import * as Tone from 'tone';
 import type { Instrument, Project, Track, TrackEffects } from '../types/project';
 import { DEFAULT_EFFECTS, DEFAULT_TRACK_COLOR } from '../types/project';
-import { createVoice, type Voice } from './voices';
+import { createVoice, type SampleBuffers, type Voice } from './voices';
 
 /** One step of the grid is a sixteenth note. */
 const SUBDIVISION = '16n';
@@ -10,6 +10,8 @@ const GATE = 0.9;
 /** Cutoff range the `tone` control sweeps, in Hz. */
 const FILTER_MIN_HZ = 140;
 const FILTER_MAX_HZ = 20000;
+/** Long enough not to click, short enough to feel immediate. */
+const PARAM_RAMP = 0.03;
 
 /** Maps 0..1 onto the cutoff range logarithmically, which is how pitch is heard. */
 function toneToFrequency(amount: number): number {
@@ -29,6 +31,8 @@ interface TrackNode {
   steps: boolean[];
   muted: boolean;
   solo: boolean;
+  /** What is currently on the nodes, so a sync only touches what moved. */
+  appliedEffects: TrackEffects;
 }
 
 /**
@@ -47,7 +51,7 @@ export class SamplerEngine {
    * channel would be the same sound at several times the cost.
    */
   private readonly reverb = new Tone.Reverb({ decay: 2.4, preDelay: 0.01, wet: 1 });
-  private readonly buffers = new Map<string, Tone.ToneAudioBuffers>();
+  private readonly buffers = new Map<string, SampleBuffers>();
   private readonly nodes = new Map<string, TrackNode>();
   private instruments = new Map<string, Instrument>();
   private order: string[] = [];
@@ -80,28 +84,38 @@ export class SamplerEngine {
     await Promise.all(pending);
   }
 
+  /**
+   * Loads each sample on its own, so one missing file costs exactly that voice
+   * rather than the whole kit. Whatever arrives is what the instrument can play.
+   */
   private async loadInstrument(instrument: Instrument, baseUrl: string): Promise<void> {
-    const urls: Record<string, string> = {};
-    for (const sample of instrument.samples) {
-      if (sample.url) urls[sample.note] = `${baseUrl}${sample.url}`;
-    }
-    if (Object.keys(urls).length === 0) return;
+    const results = await Promise.all(
+      instrument.samples
+        .filter(sample => sample.url)
+        .map(async sample => {
+          try {
+            const buffer = await new Tone.ToneAudioBuffer().load(`${baseUrl}${sample.url}`);
+            return [sample.note, buffer] as const;
+          } catch {
+            return null;
+          }
+        }),
+    );
 
-    await new Promise<void>(resolve => {
-      const buffers = new Tone.ToneAudioBuffers({
-        urls,
-        onload: () => {
-          this.buffers.set(instrument.id, buffers);
-          resolve();
-        },
-        // A missing file must not take the whole app down: the instrument
-        // simply falls back to its synth spec, or to silence.
-        onerror: () => {
-          buffers.dispose();
-          resolve();
-        },
-      });
-    });
+    const loaded: SampleBuffers = new Map();
+    for (const result of results) {
+      if (result) loaded.set(result[0], result[1]);
+    }
+
+    // The engine can be disposed while downloads are still in flight — React
+    // StrictMode guarantees at least one such round in development.
+    if (this.disposed || loaded.size === 0) {
+      loaded.forEach(buffer => buffer.dispose());
+      return;
+    }
+
+    this.buffers.get(instrument.id)?.forEach(buffer => buffer.dispose());
+    this.buffers.set(instrument.id, loaded);
   }
 
   /** Applies the whole project to the audio graph. Cheap to call on every edit. */
@@ -115,8 +129,8 @@ export class SamplerEngine {
     transport.swing = project.swing;
     transport.swingSubdivision = SUBDIVISION;
 
-    this.master.gain.rampTo(project.masterVolume, 0.02);
-    this.setLoop(project.loop);
+    this.master.gain.rampTo(project.masterVolume, PARAM_RAMP);
+    this.loop = project.loop;
     this.syncTracks(project.tracks);
 
     if (project.steps !== this.stepCount) {
@@ -134,26 +148,21 @@ export class SamplerEngine {
       seen.add(track.id);
       const existing = this.nodes.get(track.id);
 
-      if (existing && existing.instrumentId === track.instrumentId && existing.note === track.note) {
-        existing.steps = track.steps;
-        existing.muted = track.muted;
-        existing.solo = track.solo;
-        existing.gain.gain.rampTo(track.volume, 0.02);
-        this.applyEffects(existing, track.effects);
-        continue;
-      }
-
-      // Only the voice depends on the instrument and note; the chain in front of
-      // it survives, so changing a row's sound does not click or reset its mix.
       if (existing) {
-        existing.voice.dispose();
-        existing.voice = this.createTrackVoice(track, existing.drive);
-        existing.instrumentId = track.instrumentId;
-        existing.note = track.note;
+        // Only the voice depends on the instrument and note; the chain in front
+        // of it survives, so changing a row's sound does not click or reset its
+        // mix.
+        if (existing.instrumentId !== track.instrumentId || existing.note !== track.note) {
+          existing.voice.dispose();
+          existing.voice = this.createTrackVoice(track, existing.drive);
+          existing.instrumentId = track.instrumentId;
+          existing.note = track.note;
+        }
+
         existing.steps = track.steps;
         existing.muted = track.muted;
         existing.solo = track.solo;
-        existing.gain.gain.rampTo(track.volume, 0.02);
+        existing.gain.gain.rampTo(track.volume, PARAM_RAMP);
         this.applyEffects(existing, track.effects);
         continue;
       }
@@ -175,6 +184,8 @@ export class SamplerEngine {
         steps: track.steps,
         muted: track.muted,
         solo: track.solo,
+        // Matches how the nodes above were constructed.
+        appliedEffects: { ...DEFAULT_EFFECTS },
       };
 
       this.applyEffects(node, track.effects);
@@ -197,12 +208,25 @@ export class SamplerEngine {
   }
 
   private applyEffects(node: TrackNode, effects: TrackEffects | undefined): void {
-    const { tone, drive, reverb } = { ...DEFAULT_EFFECTS, ...effects };
+    const next = { ...DEFAULT_EFFECTS, ...effects };
+    const previous = node.appliedEffects;
 
-    node.filter.frequency.rampTo(toneToFrequency(tone), 0.03);
-    node.drive.distortion = drive;
-    node.drive.wet.rampTo(drive, 0.03);
-    node.send.gain.rampTo(reverb, 0.03);
+    if (next.tone !== previous.tone) {
+      node.filter.frequency.rampTo(toneToFrequency(next.tone), PARAM_RAMP);
+    }
+
+    if (next.drive !== previous.drive) {
+      // Assigning `distortion` rebuilds a 4096-point waveshaper curve, so it
+      // must not happen on syncs that had nothing to do with the drive.
+      node.drive.distortion = next.drive;
+      node.drive.wet.rampTo(next.drive, PARAM_RAMP);
+    }
+
+    if (next.reverb !== previous.reverb) {
+      node.send.gain.rampTo(next.reverb, PARAM_RAMP);
+    }
+
+    node.appliedEffects = next;
   }
 
   private disposeNode(node: TrackNode): void {
@@ -213,11 +237,13 @@ export class SamplerEngine {
     node.gain.dispose();
   }
 
-  private setLoop(loop: boolean): void {
-    this.loop = loop;
-    if (this.sequence) this.sequence.loop = loop;
-  }
-
+  /**
+   * The sequence always loops. Assigning `loop` on a running `Tone.Sequence`
+   * reschedules every event at its original absolute tick, which for a transport
+   * that has moved past those ticks means they never fire again — the sequencer
+   * simply goes quiet. A single pass is ended by stopping at the last step
+   * instead, in `tick`.
+   */
   private rebuildSequence(): void {
     const wasPlaying = Tone.getTransport().state === 'started';
 
@@ -232,34 +258,41 @@ export class SamplerEngine {
       Array.from({ length: this.stepCount }, (_, index) => index),
       SUBDIVISION,
     );
-    sequence.loop = this.loop;
+    sequence.loop = true;
     this.sequence = sequence;
 
     if (wasPlaying) sequence.start(0);
   }
 
   private tick(time: number, step: number): void {
-    const duration = Tone.Time(SUBDIVISION).toSeconds() * GATE;
+    const stepSeconds = Tone.Time(SUBDIVISION).toSeconds();
 
     for (const id of this.order) {
       const node = this.nodes.get(id);
       if (!node || node.muted) continue;
       if (this.soloActive && !node.solo) continue;
       if (!node.steps[step]) continue;
-      node.voice.trigger(time, duration, 1);
+      node.voice.trigger(time, stepSeconds * GATE, 1);
     }
 
     const draw = Tone.getDraw();
     draw.schedule(() => this.onStep?.(step), time);
 
     if (!this.loop && step === this.stepCount - 1) {
-      draw.schedule(() => this.onEnd?.(), time + duration);
+      // Stop on the audio clock at the exact end of the bar, so the pass ends
+      // where it should rather than wherever a JS callback happens to land.
+      const endTime = time + stepSeconds;
+      this.sequence?.stop(endTime);
+      Tone.getTransport().stop(endTime);
+      draw.schedule(() => this.onEnd?.(), endTime);
     }
   }
 
   /** Must be called from a user gesture: browsers refuse to start audio otherwise. */
   async start(): Promise<void> {
     await Tone.start();
+    if (this.disposed) return;
+
     const transport = Tone.getTransport();
     transport.stop();
     transport.position = 0;
@@ -271,7 +304,10 @@ export class SamplerEngine {
   stop(): void {
     Tone.getTransport().stop();
     this.sequence?.stop();
-    Tone.getDraw().cancel();
+    // `cancel()` with no argument keeps everything inside the lookahead window,
+    // which is exactly the queued playhead updates that would light a column
+    // back up after the transport has stopped.
+    Tone.getDraw().cancel(0);
   }
 
   /** Jumps back to the first column without interrupting playback. */
@@ -288,12 +324,19 @@ export class SamplerEngine {
     this.nodes.clear();
   }
 
-  /** Plays a single track once, for auditioning from the mixer. */
-  audition(trackId: string): void {
+  /**
+   * Plays a single track once, for auditioning from the mixer. Starts the audio
+   * context first: this is often the first thing a user clicks, before ever
+   * pressing play, and the context is suspended until a gesture resumes it.
+   */
+  async audition(trackId: string): Promise<void> {
     const node = this.nodes.get(trackId);
     if (!node) return;
-    const now = Tone.now();
-    node.voice.trigger(now, Tone.Time('8n').toSeconds(), 1);
+
+    await Tone.start();
+    if (this.disposed || !this.nodes.has(trackId)) return;
+
+    node.voice.trigger(Tone.now(), Tone.Time('8n').toSeconds(), 1);
   }
 
   dispose(): void {
@@ -303,7 +346,7 @@ export class SamplerEngine {
     this.sequence = null;
     this.nodes.forEach(node => this.disposeNode(node));
     this.nodes.clear();
-    this.buffers.forEach(buffers => buffers.dispose());
+    this.buffers.forEach(buffers => buffers.forEach(buffer => buffer.dispose()));
     this.buffers.clear();
     this.reverb.dispose();
     this.master.dispose();

@@ -28,9 +28,11 @@ function App() {
 
   const status = catalog.loading
     ? 'Loading instruments…'
-    : catalog.source === 'server'
-      ? 'Samples loaded from the server'
-      : 'Offline — playing built-in synth instruments';
+    : catalog.source === 'fallback'
+      ? 'Offline — playing built-in synth instruments'
+      : sampler.loadingSamples
+        ? 'Decoding samples…'
+        : 'Samples loaded from the server';
 
   return (
     <div className="app">
