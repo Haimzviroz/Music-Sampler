@@ -56,6 +56,7 @@ function Sequencer({
    * a time is the single most tedious thing about a grid sequencer.
    */
   const paintValue = useRef<boolean | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const endPaint = () => {
@@ -91,7 +92,7 @@ function Sequencer({
       {project.tracks.length === 0 ? (
         <p className="sequencer-empty">No tracks yet — add an instrument to start building a pattern.</p>
       ) : (
-        <div className="sequencer-grid">
+        <div className="sequencer-grid" ref={gridRef} tabIndex={-1}>
           <div className="track-row is-ruler">
             <div className="track-header is-ruler" aria-hidden="true" />
             <div className="track-steps" style={gridStyle}>
@@ -134,7 +135,12 @@ function Sequencer({
                   onToggleMute={() => onToggleMute(track.id)}
                   onToggleSolo={() => onToggleSolo(track.id)}
                   onMove={offset => onMoveTrack(track.id, offset)}
-                  onRemove={() => onRemoveTrack(track.id)}
+                  onRemove={() => {
+                    // The focused button is about to be unmounted; without this
+                    // focus falls to the document body.
+                    gridRef.current?.focus();
+                    onRemoveTrack(track.id);
+                  }}
                   onAudition={() => onAudition(track.id)}
                 />
                 <div className="track-steps" style={gridStyle}>

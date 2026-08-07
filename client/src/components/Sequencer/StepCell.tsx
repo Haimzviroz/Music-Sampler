@@ -27,7 +27,13 @@ function StepCell({ active, playing, accent, color, label, onPaintStart, onPaint
       style={active ? { background: color } : undefined}
       aria-pressed={active}
       aria-label={label}
-      onPointerDown={onPaintStart}
+      // Preventing the default also keeps the cell from taking focus, which is
+      // what leaves space free to start and stop the transport while a pattern
+      // is being clicked in. Tabbing to a cell still focuses it normally.
+      onPointerDown={event => {
+        event.preventDefault();
+        onPaintStart();
+      }}
       onPointerEnter={onPaintEnter}
       // A pointer already toggled the cell on pointerdown; the click that
       // follows it carries a detail count, and only a keyboard activation

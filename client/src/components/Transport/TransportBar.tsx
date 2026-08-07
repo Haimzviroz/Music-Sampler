@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import type { Project } from '../../types/project';
 import { LIMITS } from '../../types/project';
 import { useTapTempo } from '../../hooks/useTapTempo';
+import NumberField from '../common/NumberField';
 import { LoopIcon, PlayIcon, RewindIcon, StopIcon, VolumeIcon } from './icons';
 import './TransportBar.css';
 
@@ -64,7 +64,17 @@ function TransportBar({
       </div>
 
       <div className="transport-group">
-        <TempoField bpm={project.bpm} onCommit={onSetBpm} />
+        <span className="tempo-field">
+          <NumberField
+            className="tempo-input"
+            value={project.bpm}
+            min={LIMITS.bpm.min}
+            max={LIMITS.bpm.max}
+            label="Tempo in beats per minute"
+            onCommit={onSetBpm}
+          />
+          <span className="tempo-unit">BPM</span>
+        </span>
         <input
           type="range"
           className="slider slider-tempo"
@@ -74,7 +84,7 @@ function TransportBar({
           onChange={event => onSetBpm(Number(event.target.value))}
           aria-label="Tempo in BPM"
         />
-        <button type="button" className="transport-tap" onClick={tap} title="Tap four times to set the tempo">
+        <button type="button" className="transport-tap" onClick={tap} title="Tap along to set the tempo">
           Tap
         </button>
       </div>
@@ -112,55 +122,6 @@ function TransportBar({
         <span className="transport-readout">{Math.round(project.masterVolume * 100)}%</span>
       </div>
     </div>
-  );
-}
-
-interface TempoFieldProps {
-  bpm: number;
-  onCommit(bpm: number): void;
-}
-
-/**
- * Typed tempo. The value is held locally while editing so that halfway through
- * typing "90" the field is not yanked to the minimum by the clamp.
- */
-function TempoField({ bpm, onCommit }: TempoFieldProps) {
-  const [draft, setDraft] = useState(String(bpm));
-  const [lastBpm, setLastBpm] = useState(bpm);
-
-  // Derived state adjusted during render: when the tempo changes elsewhere
-  // (slider, tap, a loaded project) the field follows it.
-  if (bpm !== lastBpm) {
-    setLastBpm(bpm);
-    setDraft(String(bpm));
-  }
-
-  const commit = () => {
-    const parsed = Number(draft);
-    if (Number.isFinite(parsed) && draft.trim() !== '') {
-      onCommit(parsed);
-    } else {
-      setDraft(String(bpm));
-    }
-  };
-
-  return (
-    <span className="tempo-field">
-      <input
-        type="number"
-        className="tempo-input"
-        min={LIMITS.bpm.min}
-        max={LIMITS.bpm.max}
-        value={draft}
-        onChange={event => setDraft(event.target.value)}
-        onBlur={commit}
-        onKeyDown={event => {
-          if (event.key === 'Enter') event.currentTarget.blur();
-        }}
-        aria-label="Tempo in beats per minute"
-      />
-      <span className="tempo-unit">BPM</span>
-    </span>
   );
 }
 

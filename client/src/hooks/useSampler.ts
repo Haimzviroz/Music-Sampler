@@ -56,14 +56,18 @@ export function useSampler(project: Project, instruments: Instrument[]): Sampler
     let cancelled = false;
     setLoadingSamples(true);
 
-    engine.loadCatalog(instruments, API_BASE).then(() => {
+    const settle = () => {
       if (cancelled) return;
       // The buffers that just arrived replace whatever voices were built while
       // the download was in flight.
       engine.resetVoices();
       engine.sync(projectRef.current, instruments);
       setLoadingSamples(false);
-    });
+    };
+
+    // `loadCatalog` swallows per-sample failures, but a rejection here would
+    // otherwise leave the app loading forever with the voices never rebuilt.
+    engine.loadCatalog(instruments, API_BASE).then(settle, settle);
 
     return () => {
       cancelled = true;
@@ -106,7 +110,7 @@ export function useSampler(project: Project, instruments: Instrument[]): Sampler
   }, [isPlaying]);
 
   const audition = useCallback((trackId: string) => {
-    engineRef.current?.audition(trackId);
+    void engineRef.current?.audition(trackId);
   }, []);
 
   return { isPlaying, currentStep, loadingSamples, play, stop, togglePlay, rewind, audition };
