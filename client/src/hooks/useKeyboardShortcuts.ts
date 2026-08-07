@@ -14,9 +14,20 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 /**
- * Global transport shortcuts, the way a sequencer is expected to behave: space
- * always starts and stops, even when a step button has focus. Keyboard users
- * still activate the focused button with Enter. Text fields keep every key.
+ * Space belongs to whatever control has focus — activating a focused button
+ * with it is a baseline expectation for anyone navigating by keyboard, and
+ * taking it away is not ours to do. Clicking a step cell does not leave focus
+ * on it (see `StepCell`), so in practice space still starts and stops the
+ * transport while a pattern is being programmed with the mouse.
+ */
+function isActivatable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return ['BUTTON', 'A', 'SUMMARY'].includes(target.tagName) || target.tabIndex >= 0;
+}
+
+/**
+ * Global transport shortcuts. Text fields keep every key; space additionally
+ * defers to any focusable control that has focus.
  */
 export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
   const ref = useRef(handlers);
@@ -40,6 +51,7 @@ export function useKeyboardShortcuts(handlers: ShortcutHandlers): void {
 
       switch (event.code) {
         case 'Space':
+          if (isActivatable(event.target)) return;
           event.preventDefault();
           ref.current.togglePlay();
           break;

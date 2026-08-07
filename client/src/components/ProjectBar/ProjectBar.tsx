@@ -40,7 +40,17 @@ function ProjectBar({ name, onRename, onNewProject }: ProjectBarProps) {
           >
             Yes, start over
           </button>
-          <button type="button" className="project-action" onClick={() => setConfirming(false)}>
+          <button
+            type="button"
+            className="project-action"
+            // Focus lands on the safe option: the button that was clicked has
+            // just been replaced, and a stray Enter should not discard a
+            // pattern.
+            ref={node => {
+              node?.focus();
+            }}
+            onClick={() => setConfirming(false)}
+          >
             Cancel
           </button>
         </span>
