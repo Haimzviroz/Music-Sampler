@@ -37,14 +37,24 @@ instead, so the app is never a blank screen. The header says which mode it is in
 **Grid**
 - Any number of steps from 4 to 64, with 8 / 16 / 32 one click away. Resizing
   keeps whatever is already programmed.
-- One row per voice. Click a cell to place a note.
+- One row per voice. Click a cell to place a note, or hold and drag to paint a
+  run of them.
 - Rows come from the catalog: pick any instrument, and pitched instruments offer
   every note in their declared range.
 
 **Transport**
 - Play / stop, return to start, loop on/off, tempo (slider, typed, or tapped),
   swing, and master volume.
-- Space, Home and `L` drive the transport from anywhere; `Ctrl`/`Cmd` + `S` saves.
+
+| Key | Does |
+| --- | --- |
+| `Space` | Play / stop |
+| `Home` or `Backspace` | Return to the first column |
+| `L` | Loop on / off |
+| `Ctrl` / `Cmd` + `S` | Save now |
+
+Space belongs to a focused control when there is one — clicking a step cell does
+not take focus, so it keeps working while a pattern is being clicked in.
 
 **Channels**
 - Four instruments: a drum kit from recorded samples, plus bass, keys and pluck
@@ -109,9 +119,15 @@ npm run test       # vitest, unit tests over the project state and the catalog l
 
 All three are expected to pass clean.
 
+The tests cover the pure logic: the reducer, the note helpers, the validation
+that repairs a loaded project, and the catalog loader's fallback path. They run
+in `node` — the audio engine needs a real `AudioContext`, and a mocked one would
+test the mock.
+
 ## Not verified
 
 Audio cannot be tested without a real gesture in a real browser, so playback,
 timing feel and the sound of the synthesised instruments were checked by
 measurement (format, peak, RMS, fundamental frequency) and by reading the code —
-not by listening.
+not by listening. Nothing here has been seen rendered either; the layout and the
+contrast ratios were computed, not looked at.
