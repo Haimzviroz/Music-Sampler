@@ -17,7 +17,7 @@ function App() {
   const initialProject = useMemo(() => createStarterProject(FALLBACK_INSTRUMENTS), []);
   const [project, actions] = useProject(initialProject);
   const sampler = useSampler(project, catalog.instruments);
-  const sync = useProjectSync(project, catalog.instruments, actions.replace);
+  const sync = useProjectSync(project, catalog.instruments, !catalog.loading, actions.replace);
 
   useKeyboardShortcuts({
     togglePlay: sampler.togglePlay,

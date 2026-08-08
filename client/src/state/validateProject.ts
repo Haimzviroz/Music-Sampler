@@ -12,21 +12,10 @@
 
 import type { Instrument, Project, Track, TrackEffects } from '../types/project';
 import { DEFAULT_EFFECTS, LIMITS, PROJECT_VERSION } from '../types/project';
+import { createId } from './ids';
 import { DEFAULT_BPM, DEFAULT_STEPS, resizeSteps } from './project';
 
 const DEFAULT_VOLUME = 0.8;
-
-let fallbackId = 0;
-
-function createId(): string {
-  try {
-    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  } catch {
-    // Non-secure contexts can expose `crypto` without `randomUUID`.
-  }
-  fallbackId += 1;
-  return `restored-track-${fallbackId}`;
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -83,7 +72,10 @@ function validateTrack(
   const note = toString(value.note, '');
   if (!note) return null;
 
-  const id = typeof value.id === 'string' && value.id.length > 0 && !usedIds.has(value.id) ? value.id : createId();
+  const id =
+    typeof value.id === 'string' && value.id.length > 0 && !usedIds.has(value.id)
+      ? value.id
+      : createId('restored-track');
   usedIds.add(id);
 
   return {
@@ -110,6 +102,11 @@ export function validateProject(value: unknown, instruments: Instrument[]): Proj
   try {
     if (!isRecord(value)) return null;
     if (!Array.isArray(value.tracks)) return null;
+
+    // A project written by a newer build can hold fields this one does not
+    // understand. Repairing it would quietly discard them; refusing keeps the
+    // save intact for whichever build wrote it.
+    if (typeof value.version === 'number' && value.version > PROJECT_VERSION) return null;
 
     const steps = toInteger(value.steps, DEFAULT_STEPS, LIMITS.steps.min, LIMITS.steps.max);
     const knownInstruments = new Set(

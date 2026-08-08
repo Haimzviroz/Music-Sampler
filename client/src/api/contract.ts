@@ -23,8 +23,9 @@ export type CatalogIsUsable = Assert<
 >;
 
 /**
- * Deliberately not asserted: `Project-Output` has an optional `effects` on each
- * track, because the server defaults it for projects saved before effects
- * existed. Loading therefore goes through `validateProject`, which fills the
- * gaps — the schema cannot express "absent means these defaults".
+ * Deliberately not asserted in the other direction: the shared `Track` schema
+ * marks `effects` optional, because the server defaults it for projects saved
+ * before effects existed. A response is therefore not assignable to `Track`.
+ * Loading goes through `validateProject` instead, which fills the gaps — the
+ * schema cannot express "absent means these defaults".
  */

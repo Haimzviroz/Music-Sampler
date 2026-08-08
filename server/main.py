@@ -25,12 +25,16 @@ DATA_DIR = BASE_DIR / "data"
 STATE_FILE = DATA_DIR / "state.json"
 INSTRUMENTS_FILE = BASE_DIR / "instruments.json"
 
+# 5173 is `npm run dev`, 4173 is `npm run preview` — the production build is
+# what a reviewer is most likely to open.
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
 ]
 
-NOTE_PATTERN = re.compile(r"^([A-G])([#b]?)(-?\d)$")
+NOTE_PATTERN = re.compile(r"^([A-G])([#b]?)(-?\d+)$")
 SEMITONES = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
 
 
@@ -115,7 +119,8 @@ class Project(BaseModel):
     version: int = 2
     name: str = "Untitled"
     bpm: int = Field(default=120, ge=40, le=240)
-    steps: int = Field(default=16, ge=1, le=64)
+    # Bounds mirror LIMITS in client/src/types/project.ts.
+    steps: int = Field(default=16, ge=4, le=64)
     swing: float = Field(default=0.0, ge=0.0, le=1.0)
     masterVolume: float = Field(default=0.8, ge=0.0, le=1.0)
     loop: bool = True

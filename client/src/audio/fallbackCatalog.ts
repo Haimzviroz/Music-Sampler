@@ -4,8 +4,10 @@ import type { Instrument } from '../types/project';
  * Catalog used when the server is unreachable.
  *
  * Everything here is synthesised in the browser, so the sampler stays playable
- * with no backend at all. The ids, kinds and note names match the server
- * catalog, which means a project saved against real samples still loads.
+ * with no backend at all. It mirrors the server catalog in the things a saved
+ * project depends on — the same four instrument ids, kinds and note ranges — so
+ * a project written against real samples still loads and still plays, just with
+ * a different timbre. Colours and default notes are allowed to differ.
  */
 export const FALLBACK_INSTRUMENTS: Instrument[] = [
   {
@@ -68,10 +70,22 @@ export const FALLBACK_INSTRUMENTS: Instrument[] = [
     id: 'keys',
     name: 'Keys',
     kind: 'pitched',
-    color: '#ffb648',
-    noteRange: { low: 'C2', high: 'C6' },
-    defaultNotes: ['C4', 'D#4', 'G4', 'A#4'],
+    color: '#ffb454',
+    noteRange: { low: 'C2', high: 'C5' },
+    defaultNotes: ['C3', 'D#3', 'G3', 'A#3'],
     synth: { engine: 'fm', harmonicity: 3, modulationIndex: 10, volume: -16 },
+    samples: [],
+  },
+  {
+    id: 'pluck',
+    name: 'Pluck',
+    kind: 'pitched',
+    color: '#ff6b8b',
+    noteRange: { low: 'C3', high: 'C6' },
+    defaultNotes: ['C4', 'D#4', 'G4', 'A#4'],
+    // The sampled version is Karplus–Strong; FM with a short, bright decay is
+    // the closest thing that costs nothing to synthesise.
+    synth: { engine: 'fm', harmonicity: 2, modulationIndex: 6, volume: -14 },
     samples: [],
   },
 ];

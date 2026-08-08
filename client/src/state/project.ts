@@ -1,16 +1,9 @@
 import type { Instrument, Project, Track } from '../types/project';
 import { DEFAULT_EFFECTS, PROJECT_VERSION } from '../types/project';
+import { createId } from './ids';
 
 export const DEFAULT_STEPS = 16;
 export const DEFAULT_BPM = 120;
-
-let fallbackId = 0;
-
-function createId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  fallbackId += 1;
-  return `track-${fallbackId}`;
-}
 
 export function emptySteps(count: number): boolean[] {
   return Array<boolean>(count).fill(false);

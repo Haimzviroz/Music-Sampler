@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchProject, saveProject } from '../api/client';
-import { FALLBACK_INSTRUMENTS } from '../audio/fallbackCatalog';
+import { API_BASE, ApiError, fetchProject, saveProject } from '../api/client';
 import { loadLocalProject, saveLocalProject } from '../state/storage';
 import { validateProject } from '../state/validateProject';
 import type { Instrument, Project } from '../types/project';
@@ -36,6 +35,8 @@ function describe(error: unknown): string {
 export function useProjectSync(
   project: Project,
   instruments: Instrument[],
+  /** False until the catalog has settled; loading earlier would validate against a placeholder. */
+  catalogReady: boolean,
   onLoaded: (project: Project) => void,
 ): ProjectSync {
   const [status, setStatus] = useState<SyncStatus>('idle');
@@ -109,9 +110,11 @@ export function useProjectSync(
     } catch (error) {
       if (controller.signal.aborted || !mountedRef.current) return;
       // No retry loop: the mirror already holds this change, and the next edit
-      // schedules another attempt on its own.
+      // schedules another attempt on its own. A rejection from the server is
+      // reported as such — calling a 422 "offline" would hide a real contract
+      // failure behind a network excuse.
       setMessage(describe(error));
-      setStatus('offline');
+      setStatus(error instanceof ApiError ? 'error' : 'offline');
     } finally {
       if (saveControllerRef.current === controller) saveControllerRef.current = null;
     }
@@ -123,9 +126,9 @@ export function useProjectSync(
     void flush();
   }, [cancelTimer, flush]);
 
-  // Initial load. Runs once instruments are available, and only once.
+  // Initial load. Runs once the catalog has settled, and only once.
   useEffect(() => {
-    if (instruments.length === 0) return;
+    if (!catalogReady || instruments.length === 0) return;
     // Held in a local: the object identity never changes, and the cleanup below
     // must not reach back into the ref.
     const load = loadRef.current;
@@ -135,18 +138,16 @@ export function useProjectSync(
     const controller = new AbortController();
     let cancelled = false;
 
-    // While the built-in fallback is in place the real catalog is either still
-    // in flight or unreachable. Validating against it would drop tracks whose
-    // instrument only exists on the server, so treat it as "not loaded yet".
-    const catalog = instruments === FALLBACK_INSTRUMENTS ? [] : instruments;
+    const catalog = instruments;
 
-    const settle =(loaded: Project | null, next: SyncStatus, reason?: string) => {
+    const settle = (loaded: Project | null, next: SyncStatus, fromServer: boolean, reason?: string) => {
       if (cancelled) return;
       load.settled = true;
       if (loaded) {
-        // Remember what the server already has so hydration does not bounce
-        // the very same project straight back at it.
-        savedPayloadRef.current = next === 'offline' ? null : JSON.stringify(loaded);
+        // Only a project the server itself handed back is already saved there.
+        // A local mirror has never been seen by the server, so leaving the
+        // marker null lets the first autosave push it.
+        savedPayloadRef.current = fromServer ? JSON.stringify(loaded) : null;
         onLoadedRef.current(loaded);
       }
       setMessage(reason);
@@ -166,7 +167,7 @@ export function useProjectSync(
         const valid = validateProject(remote, catalog);
         if (valid) {
           // Already on the server by definition, so the chip opens on "Saved".
-          settle(valid, 'saved');
+          settle(valid, 'saved', true);
           return;
         }
         // 404, or a body the server accepted but we cannot use — fall through
@@ -177,7 +178,7 @@ export function useProjectSync(
       }
 
       const local = validateProject(loadLocalProject(), catalog);
-      settle(local, serverReason ? 'offline' : 'idle', serverReason);
+      settle(local, serverReason ? 'offline' : 'idle', false, serverReason);
     })();
 
     return () => {
@@ -187,7 +188,7 @@ export function useProjectSync(
       // mount start it again instead of hydrating off a cancelled request.
       if (!load.settled) load.started = false;
     };
-  }, [instruments]);
+  }, [catalogReady, instruments]);
 
   // Autosave. Mirror synchronously, server on a debounce.
   useEffect(() => {
@@ -202,6 +203,23 @@ export function useProjectSync(
       void flush();
     }, SAVE_DEBOUNCE_MS);
   }, [project, hydrated, cancelTimer, flush]);
+
+  /**
+   * A debounced save that has not fired yet dies with the tab. `sendBeacon`
+   * hands the payload to the browser, which delivers it after the page is gone
+   * — a `fetch` here would simply be cancelled.
+   */
+  useEffect(() => {
+    const flushOnUnload = () => {
+      if (!hydratedRef.current) return;
+      const payload = JSON.stringify(projectRef.current);
+      if (payload === savedPayloadRef.current) return;
+      navigator.sendBeacon?.(`${API_BASE}/api/state`, new Blob([payload], { type: 'application/json' }));
+    };
+
+    window.addEventListener('beforeunload', flushOnUnload);
+    return () => window.removeEventListener('beforeunload', flushOnUnload);
+  }, []);
 
   useEffect(
     () => () => {
