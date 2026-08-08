@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useReducer } from 'react';
+import { useMemo, useReducer } from 'react';
 import type { EffectName, Instrument, Project } from '../types/project';
-import { projectReducer, type ProjectAction } from '../state/projectReducer';
+import { projectReducer } from '../state/projectReducer';
 
 export interface ProjectActions {
   replace(project: Project): void;
@@ -12,7 +12,6 @@ export interface ProjectActions {
   setSwing(swing: number): void;
   setMasterVolume(volume: number): void;
   setLoop(loop: boolean): void;
-  addTrack(instrument: Instrument, note: string): void;
   addInstrument(instrument: Instrument): void;
   removeTrack(trackId: string): void;
   setTrackNote(trackId: string, note: string, instrument: Instrument): void;
@@ -22,14 +21,13 @@ export interface ProjectActions {
   toggleMute(trackId: string): void;
   toggleSolo(trackId: string): void;
   moveTrack(trackId: string, offset: -1 | 1): void;
-  clearTrack(trackId: string): void;
   clearAll(): void;
 }
 
 export function useProject(initial: Project): [Project, ProjectActions] {
-  const [project, dispatch] = useReducer(projectReducer, initial);
-
-  const send = useCallback((action: ProjectAction) => dispatch(action), []);
+  // `dispatch` is already stable, so the action object is built once and every
+  // callback handed to a component keeps its identity across renders.
+  const [project, send] = useReducer(projectReducer, initial);
 
   const actions = useMemo<ProjectActions>(
     () => ({
@@ -42,7 +40,6 @@ export function useProject(initial: Project): [Project, ProjectActions] {
       setSwing: swing => send({ type: 'setSwing', swing }),
       setMasterVolume: volume => send({ type: 'setMasterVolume', volume }),
       setLoop: loop => send({ type: 'setLoop', loop }),
-      addTrack: (instrument, note) => send({ type: 'addTrack', instrument, note }),
       addInstrument: instrument => send({ type: 'addInstrument', instrument }),
       removeTrack: trackId => send({ type: 'removeTrack', trackId }),
       setTrackNote: (trackId, note, instrument) => send({ type: 'setTrackNote', trackId, note, instrument }),
@@ -52,7 +49,6 @@ export function useProject(initial: Project): [Project, ProjectActions] {
       toggleMute: trackId => send({ type: 'toggleMute', trackId }),
       toggleSolo: trackId => send({ type: 'toggleSolo', trackId }),
       moveTrack: (trackId, offset) => send({ type: 'moveTrack', trackId, offset }),
-      clearTrack: trackId => send({ type: 'clearTrack', trackId }),
       clearAll: () => send({ type: 'clearAll' }),
     }),
     [send],

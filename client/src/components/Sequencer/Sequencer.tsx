@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import type { EffectName, Instrument, Project } from '../../types/project';
 import { DEFAULT_EFFECTS, DEFAULT_TRACK_COLOR } from '../../types/project';
 import PatternBar from './PatternBar';
@@ -73,11 +73,31 @@ function Sequencer({
     };
   }, []);
 
-  const byId = new Map(instruments.map(instrument => [instrument.id, instrument]));
-  const gridStyle = { '--steps': project.steps } as CSSProperties;
+  const byId = useMemo(
+    () => new Map(instruments.map(instrument => [instrument.id, instrument])),
+    [instruments],
+  );
+  const gridStyle = useMemo(() => ({ '--steps': project.steps }) as CSSProperties, [project.steps]);
 
   const toggleEffects = (trackId: string) =>
     setOpenEffects(open => (open.includes(trackId) ? open.filter(id => id !== trackId) : [...open, trackId]));
+
+  // Stable identities, so a memoised cell only re-renders when its own state
+  // changes rather than on every playhead tick.
+  const handlePaintStart = useCallback(
+    (trackId: string, step: number, active: boolean) => {
+      paintValue.current = !active;
+      onSetStep(trackId, step, !active);
+    },
+    [onSetStep],
+  );
+
+  const handlePaintEnter = useCallback(
+    (trackId: string, step: number) => {
+      if (paintValue.current !== null) onSetStep(trackId, step, paintValue.current);
+    },
+    [onSetStep],
+  );
 
   return (
     <section className="sequencer">
@@ -144,22 +164,21 @@ function Sequencer({
                   onAudition={() => onAudition(track.id)}
                 />
                 <div className="track-steps" style={gridStyle}>
-                  {track.steps.map((active, step) => (
+                  {/* Driven by the project's step count, not the track's, so the
+                      grid and the ruler cannot disagree. */}
+                  {Array.from({ length: project.steps }, (_, step) => (
                     <StepCell
                       key={step}
-                      active={active}
+                      trackId={track.id}
+                      step={step}
+                      active={track.steps[step] ?? false}
                       playing={step === currentStep}
                       accent={step % 4 === 0}
                       color={color}
                       label={`${track.label}, step ${step + 1}`}
-                      onPaintStart={() => {
-                        paintValue.current = !active;
-                        onSetStep(track.id, step, !active);
-                      }}
-                      onPaintEnter={() => {
-                        if (paintValue.current !== null) onSetStep(track.id, step, paintValue.current);
-                      }}
-                      onToggle={() => onToggleStep(track.id, step)}
+                      onPaintStart={handlePaintStart}
+                      onPaintEnter={handlePaintEnter}
+                      onToggle={onToggleStep}
                     />
                   ))}
                 </div>

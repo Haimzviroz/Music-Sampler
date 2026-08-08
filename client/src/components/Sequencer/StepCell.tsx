@@ -1,6 +1,8 @@
-import type { PointerEvent } from 'react';
+import { memo } from 'react';
 
 interface StepCellProps {
+  trackId: string;
+  step: number;
   active: boolean;
   playing: boolean;
   /** First step of a beat — drawn a shade lighter so the bar is readable. */
@@ -8,14 +10,25 @@ interface StepCellProps {
   color: string;
   label: string;
   /** Pointer pressed on this cell: begins a drag. */
-  onPaintStart(): void;
+  onPaintStart(trackId: string, step: number, active: boolean): void;
   /** Pointer dragged onto this cell while a drag is in progress. */
-  onPaintEnter(): void;
+  onPaintEnter(trackId: string, step: number): void;
   /** Keyboard activation. */
-  onToggle(): void;
+  onToggle(trackId: string, step: number): void;
 }
 
-function StepCell({ active, playing, accent, color, label, onPaintStart, onPaintEnter, onToggle }: StepCellProps) {
+function StepCell({
+  trackId,
+  step,
+  active,
+  playing,
+  accent,
+  color,
+  label,
+  onPaintStart,
+  onPaintEnter,
+  onToggle,
+}: StepCellProps) {
   const className = ['step-cell', active && 'is-active', playing && 'is-playing', accent && 'is-accent']
     .filter(Boolean)
     .join(' ');
@@ -32,17 +45,23 @@ function StepCell({ active, playing, accent, color, label, onPaintStart, onPaint
       // is being clicked in. Tabbing to a cell still focuses it normally.
       onPointerDown={event => {
         event.preventDefault();
-        onPaintStart();
+        onPaintStart(trackId, step, active);
       }}
-      onPointerEnter={onPaintEnter}
+      onPointerEnter={() => onPaintEnter(trackId, step)}
       // A pointer already toggled the cell on pointerdown; the click that
       // follows it carries a detail count, and only a keyboard activation
       // arrives with none.
-      onClick={(event: PointerEvent<HTMLButtonElement>) => {
-        if (event.detail === 0) onToggle();
+      onClick={event => {
+        if (event.detail === 0) onToggle(trackId, step);
       }}
     />
   );
 }
 
-export default StepCell;
+/**
+ * The playhead moves eight times a second at 120 BPM. Without this every cell
+ * in the grid reconciles on every step, when only the two columns either side
+ * of the playhead have actually changed. All props are primitives or stable
+ * callbacks, so the default comparison is enough.
+ */
+export default memo(StepCell);

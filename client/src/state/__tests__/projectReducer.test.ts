@@ -121,37 +121,24 @@ describe('level actions', () => {
   });
 });
 
-describe('addTrack', () => {
-  it('appends a track sized to the current step count', () => {
-    const project = makeProject();
-    const next = projectReducer(project, { type: 'addTrack', instrument: KIT, note: 'hihat' });
-
-    expect(next.tracks).toHaveLength(3);
-    expect(next.tracks[0]).toBe(project.tracks[0]);
-
-    const added = next.tracks[2];
-    expect(added.note).toBe('hihat');
-    expect(added.label).toBe('Hi-Hat');
-    expect(added.instrumentId).toBe(KIT.id);
-    expect(added.steps).toEqual(Array<boolean>(project.steps).fill(false));
-  });
-
-  it('sizes the new track to a resized grid', () => {
-    const wide = projectReducer(makeProject(), { type: 'setSteps', steps: 32 });
-    const next = projectReducer(wide, { type: 'addTrack', instrument: KIT, note: 'kick' });
-
-    expect(next.tracks[next.tracks.length - 1].steps).toHaveLength(32);
-  });
-});
-
 describe('addInstrument', () => {
-  it('adds one track per default note', () => {
+  it('adds one track per default note, sized to the current step count', () => {
     const project = makeProject();
     const next = projectReducer(project, { type: 'addInstrument', instrument: KIT });
 
     expect(next.tracks).toHaveLength(project.tracks.length + KIT.defaultNotes.length);
+    expect(next.tracks[0]).toBe(project.tracks[0]);
     expect(next.tracks.slice(2).map(track => track.note)).toEqual(['kick', 'snare']);
     expect(next.tracks.slice(2).map(track => track.label)).toEqual(['Kick', 'Snare']);
+    expect(next.tracks[2].instrumentId).toBe(KIT.id);
+    expect(next.tracks[2].steps).toEqual(Array<boolean>(project.steps).fill(false));
+  });
+
+  it('sizes new tracks to a resized grid', () => {
+    const wide = projectReducer(makeProject(), { type: 'setSteps', steps: 32 });
+    const next = projectReducer(wide, { type: 'addInstrument', instrument: KIT });
+
+    expect(next.tracks[next.tracks.length - 1].steps).toHaveLength(32);
   });
 
   it('falls back to the first four samples when there are no default notes', () => {
@@ -197,14 +184,6 @@ describe('mute and solo', () => {
 });
 
 describe('clearing', () => {
-  it('clears one track and leaves the rest programmed', () => {
-    const project = makeProject();
-    const next = projectReducer(project, { type: 'clearTrack', trackId: 'a' });
-
-    expect(next.tracks[0].steps).toEqual([false, false, false, false]);
-    expect(next.tracks[1].steps).toEqual([false, true, false, true]);
-  });
-
   it('clears every track without dropping any', () => {
     const project = makeProject();
     const next = projectReducer(project, { type: 'clearAll' });
