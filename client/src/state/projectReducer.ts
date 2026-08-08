@@ -12,7 +12,6 @@ export type ProjectAction =
   | { type: 'setSwing'; swing: number }
   | { type: 'setMasterVolume'; volume: number }
   | { type: 'setLoop'; loop: boolean }
-  | { type: 'addTrack'; instrument: Instrument; note: string }
   | { type: 'addInstrument'; instrument: Instrument }
   | { type: 'removeTrack'; trackId: string }
   | { type: 'setTrackNote'; trackId: string; note: string; instrument: Instrument }
@@ -22,7 +21,6 @@ export type ProjectAction =
   | { type: 'toggleMute'; trackId: string }
   | { type: 'toggleSolo'; trackId: string }
   | { type: 'moveTrack'; trackId: string; offset: -1 | 1 }
-  | { type: 'clearTrack'; trackId: string }
   | { type: 'clearAll' };
 
 function clamp(value: number, min: number, max: number): number {
@@ -88,12 +86,6 @@ export function projectReducer(project: Project, action: ProjectAction): Project
     case 'setLoop':
       return { ...project, loop: action.loop };
 
-    case 'addTrack':
-      return {
-        ...project,
-        tracks: [...project.tracks, createTrack(action.instrument, action.note, project.steps)],
-      };
-
     case 'addInstrument': {
       const notes = action.instrument.defaultNotes.length
         ? action.instrument.defaultNotes
@@ -140,9 +132,6 @@ export function projectReducer(project: Project, action: ProjectAction): Project
       [tracks[index], tracks[target]] = [tracks[target], tracks[index]];
       return { ...project, tracks };
     }
-
-    case 'clearTrack':
-      return updateTrack(project, action.trackId, track => ({ ...track, steps: emptySteps(project.steps) }));
 
     case 'clearAll':
       return {
