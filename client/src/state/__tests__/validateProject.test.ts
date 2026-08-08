@@ -20,6 +20,11 @@ describe('validateProject', () => {
     });
   });
 
+  it('refuses a project written by a newer build', () => {
+    expect(validateProject({ ...makeProject(), version: PROJECT_VERSION + 1 }, catalog)).toBeNull();
+    expect(validateProject({ ...makeProject(), version: PROJECT_VERSION - 1 }, catalog)).not.toBeNull();
+  });
+
   it('clamps every numeric field to its declared bounds', () => {
     const result = validateProject(
       { ...makeProject(), bpm: 9999, steps: 500, swing: -3, masterVolume: '0.5' },

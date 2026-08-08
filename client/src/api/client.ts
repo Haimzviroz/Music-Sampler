@@ -11,10 +11,25 @@ export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
 type ServerCatalog = components['schemas']['InstrumentCatalog'];
 type ServerProjectInput = components['schemas']['Project-Input'];
 
+/**
+ * The server answered, and said no. Distinct from a network failure, because
+ * "the API rejected this" and "the API is not there" call for different things
+ * being said to the user.
+ */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(method: string, path: string, status: number) {
+    super(`${method} ${path} failed: ${status}`);
+    this.name = 'ApiError';
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, init);
   if (!response.ok) {
-    throw new Error(`${init?.method ?? 'GET'} ${path} failed: ${response.status}`);
+    throw new ApiError(init?.method ?? 'GET', path, response.status);
   }
   return (await response.json()) as T;
 }
@@ -32,7 +47,7 @@ export function fetchInstruments(signal?: AbortSignal): Promise<InstrumentCatalo
 export async function fetchProject(signal?: AbortSignal): Promise<unknown> {
   const response = await fetch(`${API_BASE}/api/state`, { signal });
   if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`Failed to load project: ${response.status}`);
+  if (!response.ok) throw new ApiError('GET', '/api/state', response.status);
   return response.json();
 }
 
